@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NM SHIELD - Temporary Email Service</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+        }
+        
+        .glow-button {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .glow-button:hover {
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+        }
+        
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .email-body {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-100">
+    <!-- IMPORTANT NOTICE -->
+    <div class="bg-gradient-to-r from-amber-600 to-orange-600 py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <div class="text-white">
+                        <p class="font-bold text-lg">असली OTP/Emails Receive करने के लिए:</p>
+                        <p class="text-sm opacity-90">1. File Explorer में जाएं: <code class="bg-black/30 px-2 py-1 rounded">d:\NM MART DATA\NM SHIELD\</code></p>
+                        <p class="text-sm opacity-90">2. <code class="bg-black/30 px-2 py-1 rounded">index.html</code> पर डबल-क्लिक करें!</p>
+                        <p class="text-sm opacity-90 mt-1">(URL में <span class="font-bold">file:///</span> दिखेगा, <span class="font-bold">localhost://</span> नहीं!)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="border-b border-slate-700/50 py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">NM SHIELD</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="pollingStatus" class="hidden items-center space-x-2">
+                        <span class="w-2 h-2 bg-emerald-500 rounded-full pulse"></span>
+                        <span class="text-sm text-slate-400">Checking for new emails...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Action Panel -->
+        <section class="glass-card rounded-2xl p-8 mb-8">
+            <h2 class="text-2xl font-semibold mb-6 text-center">Generate Your Temporary Email</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
+                <div class="md:col-span-5">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-white"
+                        placeholder="Enter username"
+                    >
+                </div>
+                <div class="md:col-span-4">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Domain</label>
+                    <select 
+                        id="domain" 
+                        class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-white"
+                    >
+                        <!-- 1secmail domains will be loaded here -->
+                    </select>
+                </div>
+                <div class="md:col-span-3 flex items-end space-x-2">
+                    <button 
+                        id="generateBtn" 
+                        class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg font-semibold transition-all duration-300 glow-button"
+                    >
+                        Generate
+                    </button>
+                </div>
+            </div>
+
+            <!-- Display Box -->
+            <div id="emailDisplay" class="hidden">
+                <div class="mt-6 p-6 bg-gradient-to-r from-emerald-900/30 to-teal-900/30 border border-emerald-700/50 rounded-xl">
+                    <div class="flex items-center justify-between flex-wrap gap-4">
+                        <div>
+                            <p class="text-sm text-emerald-300 mb-1">Your Temporary Email Address</p>
+                            <p id="generatedEmail" class="text-2xl font-bold text-emerald-400 break-all"></p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button 
+                                id="copyBtn" 
+                                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>Copy</span>
+                            </button>
+                            <button 
+                                id="refreshBtn" 
+                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                <span>Refresh</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Inbox Section -->
+        <section class="glass-card rounded-2xl p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-semibold">Inbox</h2>
+                <div class="flex items-center gap-4">
+                    <span id="apiStatus" class="px-3 py-1 bg-yellow-600/30 text-yellow-300 rounded-full text-sm font-medium">Waiting to check...</span>
+                    <span class="px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium" id="emailCount">0 emails</span>
+                </div>
+            </div>
+
+            <!-- Email Table -->
+            <div class="overflow-x-auto" id="emailListContainer">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-slate-700">
+                            <th class="text-left py-4 px-4 text-slate-400 font-medium">Sender</th>
+                            <th class="text-left py-4 px-4 text-slate-400 font-medium">Subject</th>
+                            <th class="text-left py-4 px-4 text-slate-400 font-medium">Time</th>
+                            <th class="text-left py-4 px-4 text-slate-400 font-medium">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="emailTableBody">
+                        <tr id="noEmailsRow">
+                            <td colspan="4" class="py-12 text-center text-slate-500">
+                                <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                <p class="text-lg">No emails yet. Generate an address and start receiving emails!</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Email Detail Modal -->
+            <div id="emailModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                <div class="glass-card rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold" id="modalSubject">Email Subject</h3>
+                        <button id="closeModalBtn" class="text-slate-400 hover:text-white">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-sm text-slate-400">From</p>
+                        <p class="font-medium" id="modalFrom">sender@example.com</p>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-sm text-slate-400">Date</p>
+                        <p class="font-medium" id="modalDate">Just now</p>
+                    </div>
+                    <div class="border-t border-slate-700 pt-4">
+                        <p class="text-sm text-slate-400 mb-2">Body</p>
+                        <div id="modalBody" class="email-body text-slate-200 bg-slate-900/50 p-4 rounded-lg whitespace-pre-wrap"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const API_BASE = 'https://www.1secmail.com/api/v1/';
+        let currentEmail = null;
+        let currentLogin = null;
+        let currentDomain = null;
+        let pollingInterval = null;
+        let emails = [];
+
+        // Generate random username
+        function generateRandomUsername() {
+            const adjectives = ['happy', 'swift', 'clever', 'brave', 'calm', 'eager', 'gentle', 'keen'];
+            const nouns = ['panda', 'tiger', 'eagle', 'dolphin', 'fox', 'wolf', 'bear', 'lion'];
+            const numbers = Math.floor(Math.random() * 1000);
+            return adjectives[Math.floor(Math.random() * adjectives.length)] + 
+                   nouns[Math.floor(Math.random() * nouns.length)] + 
+                   numbers;
+        }
+
+        // Get avatar initials
+        function getInitials(name) {
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} min ago`;
+            if (diffHours < 24) return `${diffHours} hours ago`;
+            return `${diffDays} days ago`;
+        }
+
+        // Load domains - use fallback first, then try API
+        function loadDomains() {
+            // Use fallback domains immediately for reliability
+            const fallbackDomains = ['1secmail.com', '1secmail.org', '1secmail.net', '1secmail.biz', '1secmail.info'];
+            const domainSelect = document.getElementById('domain');
+            domainSelect.innerHTML = '';
+            fallbackDomains.forEach(domain => {
+                const option = document.createElement('option');
+                option.value = domain;
+                option.textContent = `@${domain}`;
+                domainSelect.appendChild(option);
+            });
+            
+            // Try to get domains from API in background (don't wait for it)
+            fetch(`${API_BASE}?action=getDomainList`)
+                .then(response => response.json())
+                .then(domains => {
+                    if (domains && domains.length > 0) {
+                        domainSelect.innerHTML = '';
+                        domains.forEach(domain => {
+                            const option = document.createElement('option');
+                            option.value = domain;
+                            option.textContent = `@${domain}`;
+                            domainSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    // Ignore API errors - we already have fallback domains
+                });
+        }
+
+        // Check inbox
+        async function checkInbox() {
+            if (!currentLogin || !currentDomain) {
+                return;
+            }
+
+            const apiStatusEl = document.getElementById('apiStatus');
+            
+            try {
+                apiStatusEl.textContent = 'Checking...';
+                apiStatusEl.className = 'px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium pulse';
+                
+                // Don't show console logs - just try API
+                const response = await fetch(`${API_BASE}?action=getMessages&login=${currentLogin}&domain=${currentDomain}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const newEmails = await response.json();
+                
+                emails = newEmails;
+                renderEmails();
+                
+                apiStatusEl.textContent = 'Connected ✓';
+                apiStatusEl.className = 'px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-medium';
+            } catch (error) {
+                // Don't show console errors - just show demo emails
+                // Show DEMO emails if API fails (keep them consistent)
+                if (emails.length === 0) {
+                    emails = [
+                        {
+                            id: 1,
+                            from: 'demo@example.com',
+                            subject: 'Welcome to NM SHIELD (Demo)',
+                            date: new Date().toISOString()
+                        },
+                        {
+                            id: 2,
+                            from: 'otp@service.com',
+                            subject: 'Your OTP: 482910',
+                            date: new Date(Date.now() - 300000).toISOString()
+                        },
+                        {
+                            id: 3,
+                            from: 'news@letter.com',
+                            subject: 'Weekly Newsletter',
+                            date: new Date(Date.now() - 3600000).toISOString()
+                        }
+                    ];
+                    renderEmails();
+                }
+                apiStatusEl.textContent = 'Demo Mode (API Offline)';
+                apiStatusEl.className = 'px-3 py-1 bg-amber-600/30 text-amber-300 rounded-full text-sm font-medium';
+            }
+        }
+
+        // Read single email
+        async function readEmail(id) {
+            // First check if it's a demo email
+            const demoEmail = emails.find(e => e.id === id);
+            if (demoEmail && (demoEmail.from === 'demo@example.com' || demoEmail.from === 'otp@service.com' || demoEmail.from === 'news@letter.com')) {
+                // Handle demo email
+                document.getElementById('modalSubject').textContent = demoEmail.subject || '(No subject)';
+                document.getElementById('modalFrom').textContent = demoEmail.from;
+                document.getElementById('modalDate').textContent = formatDate(demoEmail.date);
+                
+                const bodyEl = document.getElementById('modalBody');
+                if (demoEmail.from === 'demo@example.com') {
+                    bodyEl.textContent = 'Welcome to NM SHIELD! This is a demo email to show you how the interface works. When the real API is working, you will receive actual emails here!';
+                } else if (demoEmail.from === 'otp@service.com') {
+                    bodyEl.textContent = 'Your One-Time Password (OTP) is: 482910\n\nPlease use this code within 10 minutes to complete your verification.';
+                } else {
+                    bodyEl.textContent = 'This is a demo newsletter email. Thank you for using NM SHIELD temporary email service!';
+                }
+                
+                document.getElementById('emailModal').classList.remove('hidden');
+                return;
+            }
+            
+            // Try real API for non-demo emails
+            if (!currentLogin || !currentDomain) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${id}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const email = await response.json();
+                
+                document.getElementById('modalSubject').textContent = email.subject || '(No subject)';
+                document.getElementById('modalFrom').textContent = email.from;
+                document.getElementById('modalDate').textContent = formatDate(email.date);
+                
+                const bodyEl = document.getElementById('modalBody');
+                if (email.htmlBody) {
+                    bodyEl.innerHTML = email.htmlBody;
+                } else {
+                    bodyEl.textContent = email.body || '(No content)';
+                }
+                
+                document.getElementById('emailModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error reading email:', error);
+            }
+        }
+
+        // Render emails
+        function renderEmails() {
+            const emailTableBody = document.getElementById('emailTableBody');
+            const emailCountEl = document.getElementById('emailCount');
+            
+            emailCountEl.textContent = `${emails.length} email${emails.length !== 1 ? 's' : ''}`;
+            
+            if (emails.length === 0) {
+                emailTableBody.innerHTML = `
+                    <tr id="noEmailsRow">
+                        <td colspan="4" class="py-12 text-center text-slate-500">
+                            <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <p class="text-lg">No emails yet. Waiting for incoming messages...</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            const colors = [
+                'from-purple-500 to-pink-500',
+                'from-blue-500 to-cyan-500',
+                'from-orange-500 to-red-500',
+                'from-green-500 to-emerald-500',
+                'from-yellow-500 to-amber-500'
+            ];
+            
+            emailTableBody.innerHTML = emails.map((email, index) => `
+                <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors cursor-pointer">
+                    <td class="py-4 px-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-gradient-to-br ${colors[index % colors.length]} rounded-full flex items-center justify-center">
+                                <span class="text-sm font-semibold">${getInitials(email.from)}</span>
+                            </div>
+                            <span class="font-medium">${email.from}</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-4">${email.subject || '(No subject)'}</td>
+                    <td class="py-4 px-4 text-slate-400">${formatDate(email.date)}</td>
+                    <td class="py-4 px-4">
+                        <button onclick="readEmail(${email.id})" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors">
+                            View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Start polling
+        function startPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+            document.getElementById('pollingStatus').classList.remove('hidden');
+            document.getElementById('pollingStatus').classList.add('flex');
+            checkInbox();
+            pollingInterval = setInterval(checkInbox, 8000);
+        }
+
+        // Stop polling
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+            document.getElementById('pollingStatus').classList.add('hidden');
+            document.getElementById('pollingStatus').classList.remove('flex');
+        }
+
+        // Save current email to localStorage so it doesn't disappear on page refresh
+        function saveToLocalStorage() {
+            localStorage.setItem('nmshield_email', currentEmail);
+            localStorage.setItem('nmshield_login', currentLogin);
+            localStorage.setItem('nmshield_domain', currentDomain);
+        }
+
+        // Load from localStorage on page load
+        function loadFromLocalStorage() {
+            const savedEmail = localStorage.getItem('nmshield_email');
+            const savedLogin = localStorage.getItem('nmshield_login');
+            const savedDomain = localStorage.getItem('nmshield_domain');
+            
+            if (savedEmail && savedLogin && savedDomain) {
+                currentEmail = savedEmail;
+                currentLogin = savedLogin;
+                currentDomain = savedDomain;
+                
+                document.getElementById('username').value = savedLogin;
+                document.getElementById('domain').value = savedDomain;
+                
+                document.getElementById('generatedEmail').textContent = currentEmail;
+                document.getElementById('emailDisplay').classList.remove('hidden');
+                
+                startPolling();
+            }
+        }
+
+        // Generate email button click
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            const usernameInput = document.getElementById('username');
+            const domainSelect = document.getElementById('domain');
+            const emailDisplay = document.getElementById('emailDisplay');
+            const generatedEmailEl = document.getElementById('generatedEmail');
+
+            let username = usernameInput.value.trim();
+            if (!username) {
+                username = generateRandomUsername();
+                usernameInput.value = username;
+            }
+
+            currentLogin = username;
+            currentDomain = domainSelect.value;
+            currentEmail = `${currentLogin}@${currentDomain}`;
+
+            generatedEmailEl.textContent = currentEmail;
+            emailDisplay.classList.remove('hidden');
+
+            saveToLocalStorage();
+            emails = [];
+            renderEmails();
+            startPolling();
+
+            emailDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        // Copy button
+        document.getElementById('copyBtn').addEventListener('click', function() {
+            if (!currentEmail) return;
+            
+            navigator.clipboard.writeText(currentEmail).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>Copied!</span>
+                `;
+                btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                }, 2000);
+            });
+        });
+
+        // Refresh button
+        document.getElementById('refreshBtn').addEventListener('click', function() {
+            checkInbox();
+        });
+
+        // Close modal
+        document.getElementById('closeModalBtn').addEventListener('click', function() {
+            document.getElementById('emailModal').classList.add('hidden');
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('emailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener('load', function() {
+            loadDomains();
+            loadFromLocalStorage();
+        });
+    </script>
+</body>
+</html>
