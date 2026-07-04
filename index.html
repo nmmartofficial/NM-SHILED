@@ -59,6 +59,25 @@
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
             border: 1px solid rgba(245, 158, 11, 0.3);
         }
+        
+        .auto-refresh-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .refresh-blink {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body class="min-h-screen text-slate-100">
@@ -74,13 +93,15 @@
                     </div>
                     <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">NM SHIELD</h1>
                 </div>
-                <div class="text-sm text-slate-400">Retail-Tech Temp Mail</div>
+                <div class="text-sm text-slate-400 flex items-center gap-4">
+                    Retail-Tech Temp Mail
+                </div>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm-px-6 lg:px-8 py-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Control Panel -->
         <section class="glass-card rounded-2xl p-8 mb-8">
             <h2 class="text-2xl font-semibold mb-6 text-center">Generate Your Temporary Email</h2>
@@ -122,7 +143,7 @@
                         <div class="flex items-center space-x-2">
                             <button id="copyBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg font-medium transition-colors flex items-center space-x-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012-2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012-2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 0 00-2 2v8a2 2 0 002 2z"></path>
                                 </svg>
                                 <span>Copy</span>
                             </button>
@@ -134,15 +155,25 @@
                             </button>
                         </div>
                     </div>
+                    <!-- Auto Refresh Toggle -->
+                    <div class="mt-4 pt-4 border-t border-emerald-700/30 flex items-center justify-between">
+                        <div class="auto-refresh-indicator text-emerald-300 text-sm">
+                            <span id="autoRefreshDot" class="refresh-blink hidden"></span>
+                            <span id="autoRefreshStatus">Auto Refresh: OFF</span>
+                        </div>
+                        <button id="autoRefreshToggle" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-sm font-medium transition-colors">
+                            Turn ON Auto Refresh
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
         
         <!-- Inbox Section -->
         <section class="glass-card rounded-2xl p-8">
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
                 <h2 class="text-2xl font-semibold">Inbox</h2>
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-4 flex-wrap">
                     <span id="apiStatus" class="px-3 py-1 bg-yellow-600/30 text-yellow-300 rounded-full text-sm font-medium">Waiting to Check</span>
                     <span class="px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium" id="emailCount">0 Emails</span>
                 </div>
@@ -153,7 +184,7 @@
                 <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                 </svg>
-                <span class="text-amber-300 font-medium">No new mail yet</span>
+                <span class="text-amber-300 font-medium">No new mail yet — Auto Refresh will check for OTPs automatically!</span>
             </div>
             
             <!-- Email List -->
@@ -171,7 +202,7 @@
                         <tr id="noEmailsRow">
                             <td colspan="4" class="py-12 text-center text-slate-500">
                                 <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 0 00-2 2v10a2 0 002 2z"></path>
                                 </svg>
                                 <p class="text-lg">No emails yet! Generate an email first!</p>
                             </td>
@@ -225,8 +256,7 @@
             CURRENT_DOMAIN: 'nmshield_current_domain',
             EMAILS: 'nmshield_emails'
         };
-        const OTP_VALIDITY_MINUTES = 2; // OTP valid for 2 minutes
-        const API_BASE_URL = 'https://www.1secmail.com/api/v1/';
+        const AUTO_REFRESH_INTERVAL = 3000; // Check for new emails every 3 seconds!
         // --------------------------------------------------------------
 
         let currentLogin = null;
@@ -234,6 +264,8 @@
         let currentEmail = null;
         let emails = [];
         let isCheckingInbox = false;
+        let autoRefreshEnabled = false;
+        let autoRefreshInterval = null;
 
         // Save data to localStorage
         function saveToStorage() {
@@ -273,6 +305,7 @@
         // Clear old data when generating a new email
         function clearOldData() {
             emails = [];
+            stopAutoRefresh();
         }
 
         // Initialize domain dropdown with whitelisted domains only
@@ -296,19 +329,24 @@
             return adjectives[Math.floor(Math.random() * adjectives.length)] + nouns[Math.floor(Math.random() * nouns.length)] + numbers;
         }
 
-        // Format date
+        // Format date properly
         function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMins / 60);
-            const diffDays = Math.floor(diffHours / 24);
-            
-            if (diffMins < 1) return "Just Now";
-            if (diffMins < 60) return `${diffMins} min ago`;
-            if (diffHours < 24) return `${diffHours} hours ago`;
-            return `${diffDays} days ago`;
+            if (!dateStr) return 'Just Now';
+            try {
+                const date = new Date(dateStr);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMins / 60);
+                const diffDays = Math.floor(diffHours / 24);
+                
+                if (diffMins < 1) return 'Just Now';
+                if (diffMins < 60) return `${diffMins} min ago`;
+                if (diffHours < 24) return `${diffHours} hours ago`;
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            } catch {
+                return 'Just Now';
+            }
         }
 
         // Check if content looks like an OTP
@@ -319,7 +357,9 @@
                 /\bOTP\b/i,
                 /\bcode\b/i,
                 /\bverify\b/i,
-                /\bverification\b/i
+                /\bverification\b/i,
+                /\bconfirm\b/i,
+                /\bauthentication\b/i
             ];
             return otpPatterns.some(pattern => pattern.test(text));
         }
@@ -339,9 +379,9 @@
                     <tr id="noEmailsRow">
                         <td colspan="4" class="py-12 text-center text-slate-500">
                             <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 0 00-2 2v10a2 0 002 2z"></path>
                             </svg>
-                            <p class="text-lg">No emails yet! Check back later!</p>
+                            <p class="text-lg">No emails yet! Use auto-refresh to get OTPs instantly!</p>
                         </td>
                     </tr>
                 `;
@@ -362,7 +402,7 @@
             emailTableBody.innerHTML = emails.map((email, index) => {
                 const isOTP = isOTPContent(email.subject) || isOTPContent(email.body);
                 return `
-                    <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors cursor-pointer ${isOTP ? 'otp-highlight' : ''}>
+                    <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors cursor-pointer ${isOTP ? 'otp-highlight' : ''}">
                         <td class="py-4 px-4">
                             <div class="flex items-center space-x-3">
                                 <div class="w-10 h-10 bg-gradient-to-br ${colors[index % colors.length]} rounded-full flex items-center justify-center">
@@ -386,7 +426,7 @@
 
         // Fetch messages from 1secmail API
         async function fetchMessagesFromAPI() {
-            const url = `${API_BASE_URL}?action=getMessages&login=${currentLogin}&domain=${currentDomain}`;
+            const url = `https://www.1secmail.com/api/v1/?action=getMessages&login=${currentLogin}&domain=${currentDomain}`;
             
             try {
                 const response = await fetch(url);
@@ -400,7 +440,7 @@
                     
                     for (const msg of messages) {
                         try {
-                            const msgDetailUrl = `${API_BASE_URL}?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${msg.id}`;
+                            const msgDetailUrl = `https://www.1secmail.com/api/v1/?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${msg.id}`;
                             const msgResponse = await fetch(msgDetailUrl);
                             const fullMsg = await msgResponse.json();
                             
@@ -412,6 +452,7 @@
                                 body: fullMsg.textBody || fullMsg.body || 'No content'
                             });
                         } catch (err) {
+                            console.error('Error fetching message detail:', err);
                             fullEmails.push({
                                 id: msg.id,
                                 from: msg.from,
@@ -428,7 +469,7 @@
                 return [];
             } catch (err) {
                 console.error('API error:', err);
-                return [];
+                return emails; // Return existing emails if API fails
             }
         }
 
@@ -458,18 +499,25 @@
             try {
                 // Fetch real emails from API
                 const fetchedEmails = await fetchMessagesFromAPI();
+                const oldEmailCount = emails.length;
                 
                 emails = fetchedEmails;
                 renderEmails();
                 saveToStorage();
                 
-                apiStatusEl.textContent = emails.length > 0 ? `✅ ${emails.length} new mail(s) received!` : '✅ Inbox is up to date';
-                apiStatusEl.className = emails.length > 0 
-                    ? 'px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium' 
-                    : 'px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-medium';
+                if (emails.length > oldEmailCount) {
+                    apiStatusEl.textContent = '✅ NEW OTP/EMAIL RECEIVED!';
+                    apiStatusEl.className = 'px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium';
+                } else if (emails.length > 0) {
+                    apiStatusEl.textContent = '✅ Inbox is up to date';
+                    apiStatusEl.className = 'px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-medium';
+                } else {
+                    apiStatusEl.textContent = '✅ No new mail yet — keep auto-refresh ON!';
+                    apiStatusEl.className = 'px-3 py-1 bg-amber-600/30 text-amber-300 rounded-full text-sm font-medium';
+                }
             } catch (err) {
-                apiStatusEl.textContent = '❌ Error checking inbox';
-                apiStatusEl.className = 'px-3 py-1 bg-red-600/30 text-red-300 rounded-full text-sm font-medium';
+                apiStatusEl.textContent = '⚠️ Error checking inbox, will try again automatically';
+                apiStatusEl.className = 'px-3 py-1 bg-orange-600/30 text-orange-300 rounded-full text-sm font-medium';
             }
             
             // Reset button state
@@ -494,6 +542,46 @@
             document.getElementById('modalBody').textContent = email.body || 'No content available';
             
             document.getElementById('emailModal').classList.remove('hidden');
+        }
+
+        // Auto Refresh Functions
+        function startAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            autoRefreshEnabled = true;
+            updateAutoRefreshUI();
+            autoRefreshInterval = setInterval(checkInbox, AUTO_REFRESH_INTERVAL);
+            checkInbox(); // Check immediately when turned on
+        }
+        
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+            autoRefreshEnabled = false;
+            updateAutoRefreshUI();
+        }
+        
+        function updateAutoRefreshUI() {
+            const autoRefreshDot = document.getElementById('autoRefreshDot');
+            const autoRefreshStatus = document.getElementById('autoRefreshStatus');
+            const autoRefreshToggle = document.getElementById('autoRefreshToggle');
+            
+            if (autoRefreshEnabled) {
+                autoRefreshDot.classList.remove('hidden');
+                autoRefreshStatus.textContent = 'Auto Refresh: ON (every 3 sec)';
+                autoRefreshToggle.textContent = 'Turn OFF Auto Refresh';
+                autoRefreshToggle.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+                autoRefreshToggle.classList.add('bg-emerald-700', 'hover:bg-emerald-600');
+            } else {
+                autoRefreshDot.classList.add('hidden');
+                autoRefreshStatus.textContent = 'Auto Refresh: OFF';
+                autoRefreshToggle.textContent = 'Turn ON Auto Refresh';
+                autoRefreshToggle.classList.remove('bg-emerald-700', 'hover:bg-emerald-600');
+                autoRefreshToggle.classList.add('bg-slate-700', 'hover:bg-slate-600');
+            }
         }
 
         // Generate email button - with domain whitelist validation
@@ -528,7 +616,7 @@
             generatedEmailEl.textContent = currentEmail;
             emailDisplay.classList.remove('hidden');
             
-            apiStatusEl.textContent = '✅ Ready - Check Inbox!';
+            apiStatusEl.textContent = '✅ Ready — Turn ON Auto Refresh to get OTPs instantly!';
             apiStatusEl.className = 'px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium';
             
             renderEmails();
@@ -564,6 +652,15 @@
 
         // Refresh button - optimized
         document.getElementById('refreshBtn').addEventListener('click', checkInbox);
+        
+        // Auto Refresh Toggle
+        document.getElementById('autoRefreshToggle').addEventListener('click', () => {
+            if (autoRefreshEnabled) {
+                stopAutoRefresh();
+            } else {
+                startAutoRefresh();
+            }
+        });
 
         // Close modal
         document.getElementById('closeModalBtn').addEventListener('click', () => {
@@ -605,6 +702,7 @@
                 emailDisplay.classList.remove('hidden');
                 
                 renderEmails();
+                updateAutoRefreshUI();
                 
                 console.log('✅ Restored session from storage');
             }
