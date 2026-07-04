@@ -1,4 +1,4 @@
-// api/proxy.js - Vercel Serverless Proxy for Tmailor API
+// api/index.js - Vercel Serverless Proxy for Tmailor API
 module.exports = async (req, res) => {
   // Add CORS headers to allow requests from our frontend
   res.setHeader('Access-Control-Allow-Origin', '*');

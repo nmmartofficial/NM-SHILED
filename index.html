@@ -394,16 +394,16 @@
         // Fetch messages from Tmailor API via proxy
         async function fetchMessagesFromAPI() {
             const useProxy = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-            const baseUrl = useProxy ? '/api/proxy' : 'https://tmailor.com/api';
+            const baseUrl = useProxy ? '/api' : 'https://tmailor.com/api';
             
             try {
                 let response;
                 if (useProxy) {
                     // Use our proxy server
-                    const url = `${baseUrl}?action=getmessages&token=${encodeURIComponent(currentToken)}';
+                    const url = `${baseUrl}?action=getmessages&token=${encodeURIComponent(currentToken)}`;
                     response = await fetch(url);
                 } else {
-                    // Direct call to Tmailor (might have CORS issues
+                    // Direct call to Tmailor (might have CORS issues)
                     response = await fetch(baseUrl, {
                         method: 'POST',
                         headers: {
@@ -447,12 +447,12 @@
         // Generate new email from Tmailor API via proxy
         async function generateNewEmail() {
             const useProxy = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-            const baseUrl = useProxy ? '/api/proxy' : 'https://tmailor.com/api';
+            const baseUrl = useProxy ? '/api' : 'https://tmailor.com/api';
             
             try {
                 let response;
                 if (useProxy) {
-                    const url = `${baseUrl}?action=newemail';
+                    const url = `${baseUrl}?action=newemail`;
                     response = await fetch(url);
                 } else {
                     response = await fetch(baseUrl, {
