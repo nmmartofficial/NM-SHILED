@@ -213,7 +213,7 @@
             
             <!-- Email Modal -->
             <div id="emailModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                <div class="glass-card rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-hidden">
+                <div class="glass-card rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-xl font-bold" id="modalSubject">Email Subject</h3>
                         <button id="closeModalBtn" class="text-slate-400 hover:text-white">
@@ -229,6 +229,11 @@
                     <div class="mb-4">
                         <p class="text-sm text-slate-400">Date</p>
                         <p class="font-medium" id="modalDate">Just Now</p>
+                    </div>
+                    <!-- OTP Codes Section -->
+                    <div id="otpSection" class="hidden mb-4 p-4 bg-emerald-900/30 border border-emerald-700/50 rounded-lg">
+                        <p class="text-sm text-emerald-300 mb-2 font-medium">🔑 Extracted OTP Codes</p>
+                        <div id="otpCodes" class="flex flex-wrap gap-2"></div>
                     </div>
                     <div class="border-t border-slate-700 pt-4">
                         <p class="text-sm text-slate-400 mb-2">Message</p>
@@ -349,6 +354,14 @@
             }
         }
 
+        // Extract OTP codes from text
+        function extractOTP(text) {
+            if (!text) return [];
+            const otpPattern = /\b\d{4,8}\b/g; // 4-8 digit numbers (common OTP)
+            const matches = text.match(otpPattern);
+            return matches ? [...new Set(matches)] : []; // Remove duplicates
+        }
+
         // Check if content looks like an OTP
         function isOTPContent(text) {
             if (!text) return false;
@@ -401,6 +414,7 @@
             
             emailTableBody.innerHTML = emails.map((email, index) => {
                 const isOTP = isOTPContent(email.subject) || isOTPContent(email.body);
+                const extractedOTPs = extractOTP(email.subject + ' ' + email.body);
                 return `
                     <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors cursor-pointer ${isOTP ? 'otp-highlight' : ''}">
                         <td class="py-4 px-4">
@@ -416,7 +430,12 @@
                         </td>
                         <td class="py-4 px-4">${email.subject || '(No Subject)'}</td>
                         <td class="py-4 px-4 text-slate-400">${formatDate(email.date || new Date())}</td>
-                        <td class="py-4 px-4">
+                        <td class="py-4 px-4 flex items-center gap-2">
+                            ${extractedOTPs.length > 0 ? `
+                                <button onclick="copyOTP('${extractedOTPs[0]}')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-sm font-medium transition-colors">
+                                    Copy OTP
+                                </button>
+                            ` : ''}
                             <button onclick="readEmail(${email.id})" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors">View</button>
                         </td>
                     </tr>
@@ -527,6 +546,24 @@
             refreshBtnText.textContent = 'Check Inbox';
         }
 
+        // Copy OTP to clipboard
+        async function copyOTP(otp) {
+            await navigator.clipboard.writeText(otp);
+            // Show feedback
+            const buttons = document.querySelectorAll('.otp-copy-btn');
+            buttons.forEach(btn => {
+                if (btn.dataset.otp === otp) {
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copied!';
+                    btn.classList.add('bg-green-600');
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.classList.remove('bg-green-600');
+                    }, 2000);
+                }
+            });
+        }
+
         // Read single email
         async function readEmail(id) {
             if (!currentLogin || !currentDomain) return;
@@ -540,6 +577,29 @@
             document.getElementById('modalFrom').textContent = email.from || 'unknown';
             document.getElementById('modalDate').textContent = formatDate(email.date || new Date());
             document.getElementById('modalBody').textContent = email.body || 'No content available';
+            
+            // Extract and display OTP codes
+            const otpSection = document.getElementById('otpSection');
+            const otpCodes = document.getElementById('otpCodes');
+            const extractedOTPs = extractOTP(email.subject + ' ' + email.body);
+            
+            if (extractedOTPs.length > 0) {
+                otpSection.classList.remove('hidden');
+                otpCodes.innerHTML = extractedOTPs.map(otp => `
+                    <div class="flex items-center gap-2 bg-emerald-800/50 rounded-lg px-4 py-2">
+                        <span class="text-xl font-bold text-emerald-300 font-mono">${otp}</span>
+                        <button 
+                            class="otp-copy-btn px-3 py-1 bg-emerald-600 hover:bg-emerald-700 rounded text-sm font-medium transition-colors"
+                            data-otp="${otp}"
+                            onclick="copyOTP('${otp}')"
+                        >
+                            Copy
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                otpSection.classList.add('hidden');
+            }
             
             document.getElementById('emailModal').classList.remove('hidden');
         }
