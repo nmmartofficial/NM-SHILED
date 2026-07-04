@@ -188,7 +188,7 @@
     </main>
 
     <script>
-        const API_BASE = "https://www.1secmail.com/api/v1/";
+        const API_BASE = "https://api.allorigins.win/raw?url=https://www.1secmail.com/api/v1/";
         let currentLogin = null;
         let currentDomain = null;
         let emails = [];
@@ -275,7 +275,14 @@
             apiStatusEl.className = "px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium pulse";
             
             try {
-                const response = await fetch(`${API_BASE}?action=getMessages&login=${currentLogin}&domain=${currentDomain}`);
+                // Direct 1secmail API call first
+                let response = await fetch(`https://www.1secmail.com/api/v1/?action=getMessages&login=${currentLogin}&domain=${currentDomain}`);
+                
+                // If that fails, try the CORS proxy
+                if (!response.ok) {
+                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.1secmail.com/api/v1/?action=getMessages&login=${currentLogin}&domain=${currentDomain}`)}`;
+                    response = await fetch(proxyUrl);
+                }
                 
                 if (!response.ok) {
                     throw new Error(`Failed to check inbox (status: ${response.status})`);
@@ -299,7 +306,15 @@
             if (!currentLogin || !currentDomain) return;
             
             try {
-                const response = await fetch(`${API_BASE}?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${id}`);
+                // Direct 1secmail API call first
+                let response = await fetch(`https://www.1secmail.com/api/v1/?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${id}`);
+                
+                // If that fails, try the CORS proxy
+                if (!response.ok) {
+                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.1secmail.com/api/v1/?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${id}`)}`;
+                    response = await fetch(proxyUrl);
+                }
+                
                 const email = await response.json();
                 
                 document.getElementById('modalSubject').textContent = email.subject || '(No Subject)';
