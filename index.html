@@ -225,6 +225,7 @@
             CURRENT_DOMAIN: 'nmshield_current_domain',
             EMAILS: 'nmshield_emails'
         };
+        const OTP_VALIDITY_MINUTES = 2; // OTP valid for 2 minutes
         // --------------------------------------------------------------
 
         let currentLogin = null;
@@ -271,6 +272,11 @@
         // Clear old data when generating a new email
         function clearOldData() {
             emails = [];
+        }
+
+        // Generate random 6-digit OTP
+        function generateOTP() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
         }
 
         // Initialize domain dropdown with whitelisted domains only
@@ -337,7 +343,7 @@
                     <tr id="noEmailsRow">
                         <td colspan="4" class="py-12 text-center text-slate-500">
                             <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 0 00-2 2v10a2 0 002 2z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 0 00-2-2H5a2 0 00-2 2v10a2 0 002 2z"></path>
                             </svg>
                             <p class="text-lg">No emails yet! Check back later!</p>
                         </td>
@@ -408,21 +414,24 @@
             // For now, we'll use demo data to show the features working
             await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
             
-            // Demo emails - including an OTP email
+            // Generate fresh OTP with 2 minutes validity
+            const otp = generateOTP();
+            const now = new Date();
+            const validUntil = new Date(now.getTime() + OTP_VALIDITY_MINUTES * 60000);
+            
+            // Demo emails - fresh OTP with validity info
             const demoEmails = [
                 {
-                    id: 1,
+                    id: Date.now(),
                     from: 'noreply@myapp.com',
-                    subject: 'Your Verification OTP: 482910',
-                    body: 'Your One-Time Password (OTP) for verification is: 482910\n\nThis OTP is valid for 10 minutes.',
-                    date: new Date(Date.now() - 20000)
-                },
-                {
-                    id: 2,
-                    from: 'support@shop.com',
-                    subject: 'Welcome to our service!',
-                    body: 'Thank you for signing up!',
-                    date: new Date(Date.now() - 3600000)
+                    subject: `Your Verification OTP: ${otp}`,
+                    body: `Your One-Time Password (OTP) for verification is: ${otp}
+
+This OTP is valid for ${OTP_VALIDITY_MINUTES} minutes.
+Valid Until: ${validUntil.toLocaleString()}
+
+Do not share this OTP with anyone.`,
+                    date: now.toISOString()
                 }
             ];
             
