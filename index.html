@@ -43,6 +43,22 @@
             max-height: 400px;
             overflow-y: auto;
         }
+        
+        .otp-highlight {
+            animation: otpPulse 1.5s ease-in-out infinite;
+            border: 2px solid #10b981 !important;
+            background: rgba(16, 185, 129, 0.1) !important;
+        }
+        
+        @keyframes otpPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 20px 5px rgba(16, 185, 129, 0.2); }
+        }
+        
+        .no-mail-indicator {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
     </style>
 </head>
 <body class="min-h-screen text-slate-100">
@@ -106,7 +122,7 @@
                         <div class="flex items-center space-x-2">
                             <button id="copyBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg font-medium transition-colors flex items-center space-x-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012-2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                                 </svg>
                                 <span>Copy</span>
                             </button>
@@ -114,7 +130,7 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                 </svg>
-                                <span>Check Inbox</span>
+                                <span id="refreshBtnText">Check Inbox</span>
                             </button>
                         </div>
                     </div>
@@ -132,6 +148,14 @@
                 </div>
             </div>
             
+            <!-- No Mail Indicator -->
+            <div id="noMailIndicator" class="hidden no-mail-indicator rounded-xl p-4 mb-6 flex items-center space-x-3">
+                <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                </svg>
+                <span class="text-amber-300 font-medium">No new mail yet</span>
+            </div>
+            
             <!-- Email List -->
             <div class="overflow-x-auto">
                 <table class="w-full">
@@ -147,7 +171,7 @@
                         <tr id="noEmailsRow">
                             <td colspan="4" class="py-12 text-center text-slate-500">
                                 <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 0 002 2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                 </svg>
                                 <p class="text-lg">No emails yet! Generate an email first!</p>
                             </td>
@@ -200,6 +224,7 @@
         let currentLogin = null;
         let currentDomain = null;
         let emails = [];
+        let isCheckingInbox = false;
 
         // Initialize domain dropdown with whitelisted domains only
         function initDomainDropdown() {
@@ -237,26 +262,45 @@
             return `${diffDays} days ago`;
         }
 
+        // Check if content looks like an OTP
+        function isOTPContent(text) {
+            if (!text) return false;
+            const otpPatterns = [
+                /\b\d{4,8}\b/,  // 4-8 digit numbers (common OTP)
+                /\bOTP\b/i,
+                /\bcode\b/i,
+                /\bverify\b/i,
+                /\bverification\b/i
+            ];
+            return otpPatterns.some(pattern => pattern.test(text));
+        }
+
         // Render emails
         function renderEmails() {
             const emailTableBody = document.getElementById('emailTableBody');
             const emailCountEl = document.getElementById('emailCount');
+            const noMailIndicator = document.getElementById('noMailIndicator');
             
             emailCountEl.textContent = `${emails.length} Email${emails.length !== 1 ? 's' : ''}`;
             
             if (emails.length === 0) {
+                // Show "No new mail" indicator and empty table
+                noMailIndicator.classList.remove('hidden');
                 emailTableBody.innerHTML = `
                     <tr id="noEmailsRow">
                         <td colspan="4" class="py-12 text-center text-slate-500">
                             <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 0 002 2z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 0 00-2-2H5a2 0 00-2 2v10a2 2 0 002 2z"></path>
                             </svg>
-                            <p class="text-lg">No emails yet! Check back in a few seconds!</p>
+                            <p class="text-lg">No emails yet! Check back later!</p>
                         </td>
                     </tr>
                 `;
                 return;
             }
+            
+            // Hide "No new mail" indicator
+            noMailIndicator.classList.add('hidden');
             
             const colors = [
                 'from-purple-500 to-pink-500',
@@ -266,14 +310,19 @@
                 'from-yellow-500 to-amber-500'
             ];
             
-            emailTableBody.innerHTML = emails.map((email, index) => `
-                <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors cursor-pointer">
+            emailTableBody.innerHTML = emails.map((email, index) => {
+                const isOTP = isOTPContent(email.subject) || isOTPContent(email.body);
+                return `
+                <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors cursor-pointer ${isOTP ? 'otp-highlight' : ''}">
                     <td class="py-4 px-4">
                         <div class="flex items-center space-x-3">
                             <div class="w-10 h-10 bg-gradient-to-br ${colors[index % colors.length]} rounded-full flex items-center justify-center">
                                 <span class="text-sm font-semibold">${(email.from || 'unknown').substring(0, 2).toUpperCase()}</span>
                             </div>
-                            <span class="font-medium">${email.from || 'unknown'}</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-medium">${email.from || 'unknown'}</span>
+                                ${isOTP ? '<span class="px-2 py-0.5 bg-emerald-600/20 text-emerald-400 rounded-full text-xs font-semibold">OTP</span>' : ''}
+                            </div>
                         </div>
                     </td>
                     <td class="py-4 px-4">${email.subject || '(No Subject)'}</td>
@@ -282,22 +331,68 @@
                         <button onclick="readEmail(${email.id || 0})" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors">View</button>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
-        // Check inbox (using tmailor-compatible setup)
+        // Check inbox - optimized for OTP!
         async function checkInbox() {
             if (!currentLogin || !currentDomain) {
                 return;
             }
+            
+            if (isCheckingInbox) {
+                return; // Prevent duplicate clicks
+            }
 
             const apiStatusEl = document.getElementById('apiStatus');
-            apiStatusEl.textContent = "Checking...";
-            apiStatusEl.className = "px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium pulse";
+            const refreshBtn = document.getElementById('refreshBtn');
+            const refreshBtnText = document.getElementById('refreshBtnText');
+            
+            // Set loading state
+            isCheckingInbox = true;
+            refreshBtn.disabled = true;
+            refreshBtn.classList.add('opacity-70', 'cursor-not-allowed');
+            refreshBtnText.textContent = 'Checking...';
+            
+            apiStatusEl.textContent = 'Checking for new mail...';
+            apiStatusEl.className = 'px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium pulse';
 
-            // For now, show a friendly message - replace with actual tmailor API when available
-            apiStatusEl.textContent = "✅ Ready - Check Inbox for New Emails";
-            apiStatusEl.className = "px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-medium";
+            // --- Simulated API Call (replace with real tmailor API when ready) ---
+            // For now, we'll use demo data to show the features working
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
+            
+            // Demo emails - including an OTP email
+            const demoEmails = [
+                {
+                    id: 1,
+                    from: 'noreply@myapp.com',
+                    subject: 'Your Verification OTP: 482910',
+                    body: 'Your One-Time Password (OTP) for verification is: 482910\n\nThis OTP is valid for 10 minutes.',
+                    date: new Date(Date.now() - 20000)
+                },
+                {
+                    id: 2,
+                    from: 'support@shop.com',
+                    subject: 'Welcome to our service!',
+                    body: 'Thank you for signing up!',
+                    date: new Date(Date.now() - 3600000)
+                }
+            ];
+            
+            emails = demoEmails;
+            renderEmails();
+            
+            // Update state to ready
+            apiStatusEl.textContent = emails.length > 0 ? '✅ New mail received!' : '✅ Inbox is up to date';
+            apiStatusEl.className = emails.length > 0 
+                ? 'px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium' 
+                : 'px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-medium';
+            
+            // Reset button state
+            isCheckingInbox = false;
+            refreshBtn.disabled = false;
+            refreshBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            refreshBtnText.textContent = 'Check Inbox';
             
             console.log('Checking inbox for:', `${currentLogin}@${currentDomain}`);
         }
@@ -306,11 +401,13 @@
         async function readEmail(id) {
             if (!currentLogin || !currentDomain) return;
             
-            // For now, show demo content - replace with actual tmailor API when available
-            document.getElementById('modalSubject').textContent = 'Demo Email Subject';
-            document.getElementById('modalFrom').textContent = 'demo@example.com';
-            document.getElementById('modalDate').textContent = formatDate(new Date());
-            document.getElementById('modalBody').textContent = 'This is a demo email. Replace with actual tmailor API integration!';
+            // Find email in our list
+            const email = emails.find(e => e.id === id) || emails[0];
+            
+            document.getElementById('modalSubject').textContent = email?.subject || 'Demo Email Subject';
+            document.getElementById('modalFrom').textContent = email?.from || 'demo@example.com';
+            document.getElementById('modalDate').textContent = formatDate(email?.date || new Date());
+            document.getElementById('modalBody').textContent = email?.body || 'This is a demo email. Replace with actual tmailor API integration!';
             
             document.getElementById('emailModal').classList.remove('hidden');
         }
@@ -348,7 +445,6 @@
             
             emails = [];
             renderEmails();
-            checkInbox();
             
             emailDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
@@ -378,7 +474,7 @@
             });
         });
 
-        // Refresh button
+        // Refresh button - optimized
         document.getElementById('refreshBtn').addEventListener('click', checkInbox);
 
         // Close modal
