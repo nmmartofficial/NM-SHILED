@@ -30,26 +30,18 @@
             box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
         }
         
-        .email-iframe-container {
-            position: relative;
-            width: 100%;
-            height: 700px;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #1e293b;
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         
-        .email-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            border-radius: 12px;
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
         
-        @media (max-width: 768px) {
-            .email-iframe-container {
-                height: 600px;
-            }
+        .email-body {
+            max-height: 400px;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -74,71 +66,331 @@
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Control Panel -->
-        <section class="glass-card rounded-2xl p-6 mb-6">
-            <h2 class="text-xl font-semibold mb-4 text-center">Temporary Email Dashboard</h2>
+        <section class="glass-card rounded-2xl p-8 mb-8">
+            <h2 class="text-2xl font-semibold mb-6 text-center">Generate Your Temporary Email</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Quick Actions</label>
-                    <div class="flex flex-wrap gap-3">
-                        <button id="refreshIframeBtn" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg font-medium transition-all glow-button">
-                            <svg class="inline w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                            </svg>
-                            Refresh Inbox
-                        </button>
-                        <button id="openNewTabBtn" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors">
-                            <svg class="inline w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-2.414-2.414a1 1 0 01-.293-.707V4.5"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                            </svg>
-                            Open in New Tab
-                        </button>
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
+                <div class="md:col-span-5">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-white"
+                        placeholder="Enter username"
+                    >
                 </div>
-                
-                <div class="text-right">
-                    <p class="text-sm text-slate-400 mb-1">Tip:</p>
-                    <p class="text-xs text-slate-500">Use the temp mail interface inside the iframe below!</p>
+                <div class="md:col-span-4">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Domain</label>
+                    <select 
+                        id="domain" 
+                        class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-white"
+                    >
+                        <option value="1secmail.com">@1secmail.com</option>
+                        <option value="1secmail.org">@1secmail.org</option>
+                        <option value="1secmail.net">@1secmail.net</option>
+                        <option value="1secmail.biz">@1secmail.biz</option>
+                    </select>
+                </div>
+                <div class="md:col-span-3 flex items-end space-x-2">
+                    <button id="generateBtn" class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg font-semibold transition-all duration-300 glow-button">
+                        Generate Email
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Email Display -->
+            <div id="emailDisplay" class="hidden">
+                <div class="mt-6 p-6 bg-gradient-to-r from-emerald-900/30 to-teal-900/30 border border-emerald-700/50 rounded-xl">
+                    <div class="flex items-center justify-between flex-wrap gap-4">
+                        <div>
+                            <p class="text-sm text-emerald-300 mb-1">Your Temporary Email Address</p>
+                            <p id="generatedEmail" class="text-2xl font-bold text-emerald-400 break-all"></p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button id="copyBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg font-medium transition-colors flex items-center space-x-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>Copy</span>
+                            </button>
+                            <button id="refreshBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors flex items-center space-x-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                <span>Check Inbox</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
-
-        <!-- Iframe Inbox Container -->
-        <section class="glass-card rounded-2xl p-4">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold">Your Inbox</h2>
-                <span class="px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium">Live</span>
+        
+        <!-- Inbox Section -->
+        <section class="glass-card rounded-2xl p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-semibold">Inbox</h2>
+                <div class="flex items-center gap-4">
+                    <span id="apiStatus" class="px-3 py-1 bg-yellow-600/30 text-yellow-300 rounded-full text-sm font-medium">Waiting to Check</span>
+                    <span class="px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium" id="emailCount">0 Emails</span>
+                </div>
             </div>
             
-            <div class="email-iframe-container">
-                <iframe 
-                    id="emailIframe" 
-                    src="https://tempmail.dev/en" 
-                    class="email-iframe"
-                    title="NM SHIELD Temporary Email"
-                    loading="lazy"
-                ></iframe>
+            <!-- Email List -->
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-slate-700">
+                            <th class="text-left py-4 px-4 text-slate-400 font-medium">Sender</th>
+                            <th class="text-left py-4 px-4 text-slate-400 font-medium">Subject</th>
+                            <th class="text-left py-4 px-4 text-slate-400 font-medium">Date</th>
+                            <th class="text-left py-4 px-4 text-slate-400 font-medium">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="emailTableBody">
+                        <tr id="noEmailsRow">
+                            <td colspan="4" class="py-12 text-center text-slate-500">
+                                <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                <p class="text-lg">No emails yet! Generate an email first!</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Email Modal -->
+            <div id="emailModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                <div class="glass-card rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold" id="modalSubject">Email Subject</h3>
+                        <button id="closeModalBtn" class="text-slate-400 hover:text-white">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-sm text-slate-400">From</p>
+                        <p class="font-medium" id="modalFrom">sender@example.com</p>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-sm text-slate-400">Date</p>
+                        <p class="font-medium" id="modalDate">Just Now</p>
+                    </div>
+                    <div class="border-t border-slate-700 pt-4">
+                        <p class="text-sm text-slate-400 mb-2">Message</p>
+                        <div id="modalBody" class="email-body text-slate-200 bg-slate-900/50 p-4 rounded-lg whitespace-pre-wrap"></div>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
 
     <script>
-        const emailIframe = document.getElementById('emailIframe');
-        const refreshBtn = document.getElementById('refreshIframeBtn');
-        const newTabBtn = document.getElementById('openNewTabBtn');
-
-        // Refresh iframe
-        refreshBtn.addEventListener('click', () => {
-            emailIframe.src = emailIframe.src;
+        const API_BASE = "https://www.1secmail.com/api/v1/";
+        let currentLogin = null;
+        let currentDomain = null;
+        let emails = [];
+        
+        // Generate random username
+        function generateRandomUsername() {
+            const adjectives = ['happy', 'swift', 'clever', 'brave', 'calm', 'eager', 'gentle', 'keen'];
+            const nouns = ['panda', 'tiger', 'eagle', 'dolphin', 'fox', 'wolf', 'bear', 'lion'];
+            const numbers = Math.floor(Math.random() * 10000);
+            return adjectives[Math.floor(Math.random() * adjectives.length)] + nouns[Math.floor(Math.random() * nouns.length)] + numbers;
+        }
+        
+        // Format date
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffMins < 1) return "Just Now";
+            if (diffMins < 60) return `${diffMins} min ago`;
+            if (diffHours < 24) return `${diffHours} hours ago`;
+            return `${diffDays} days ago`;
+        }
+        
+        // Render emails
+        function renderEmails() {
+            const emailTableBody = document.getElementById('emailTableBody');
+            const emailCountEl = document.getElementById('emailCount');
+            
+            emailCountEl.textContent = `${emails.length} Email${emails.length !== 1 ? 's' : ''}`;
+            
+            if (emails.length === 0) {
+                emailTableBody.innerHTML = `
+                    <tr id="noEmailsRow">
+                        <td colspan="4" class="py-12 text-center text-slate-500">
+                            <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <p class="text-lg">No emails yet! Check back in a few seconds!</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            const colors = [
+                'from-purple-500 to-pink-500',
+                'from-blue-500 to-cyan-500',
+                'from-orange-500 to-red-500',
+                'from-green-500 to-emerald-500',
+                'from-yellow-500 to-amber-500'
+            ];
+            
+            emailTableBody.innerHTML = emails.map((email, index) => `
+                <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors cursor-pointer">
+                    <td class="py-4 px-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-gradient-to-br ${colors[index % colors.length]} rounded-full flex items-center justify-center">
+                                <span class="text-sm font-semibold">${email.from.substring(0,2).toUpperCase()}</span>
+                            </div>
+                            <span class="font-medium">${email.from}</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-4">${email.subject || '(No Subject)'}</td>
+                    <td class="py-4 px-4 text-slate-400">${formatDate(email.date)}</td>
+                    <td class="py-4 px-4">
+                        <button onclick="readEmail(${email.id})" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors">View</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // Check inbox
+        async function checkInbox() {
+            if (!currentLogin || !currentDomain) {
+                return;
+            }
+            
+            const apiStatusEl = document.getElementById('apiStatus');
+            apiStatusEl.textContent = "Checking...";
+            apiStatusEl.className = "px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium pulse";
+            
+            try {
+                const response = await fetch(`${API_BASE}?action=getMessages&login=${currentLogin}&domain=${currentDomain}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to check inbox (status: ${response.status})`);
+                }
+                
+                const newEmails = await response.json();
+                emails = newEmails;
+                renderEmails();
+                
+                apiStatusEl.textContent = "✅ Connected";
+                apiStatusEl.className = "px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-medium";
+            } catch (error) {
+                console.error('Error checking inbox:', error);
+                apiStatusEl.textContent = "❌ " + error.message;
+                apiStatusEl.className = "px-3 py-1 bg-red-600/30 text-red-300 rounded-full text-sm font-medium";
+            }
+        }
+        
+        // Read single email
+        async function readEmail(id) {
+            if (!currentLogin || !currentDomain) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${id}`);
+                const email = await response.json();
+                
+                document.getElementById('modalSubject').textContent = email.subject || '(No Subject)';
+                document.getElementById('modalFrom').textContent = email.from;
+                document.getElementById('modalDate').textContent = formatDate(email.date);
+                
+                const bodyEl = document.getElementById('modalBody');
+                if (email.htmlBody) {
+                    bodyEl.innerHTML = email.htmlBody;
+                } else {
+                    bodyEl.textContent = email.body || '(No Content)';
+                }
+                
+                document.getElementById('emailModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error reading email:', error);
+                alert('Failed to read email!');
+            }
+        }
+        
+        // Generate email button
+        document.getElementById('generateBtn').addEventListener('click', () => {
+            const usernameInput = document.getElementById('username');
+            const domainSelect = document.getElementById('domain');
+            const emailDisplay = document.getElementById('emailDisplay');
+            const generatedEmailEl = document.getElementById('generatedEmail');
+            const apiStatusEl = document.getElementById('apiStatus');
+            
+            let username = usernameInput.value.trim();
+            if (!username) {
+                username = generateRandomUsername();
+                usernameInput.value = username;
+            }
+            
+            currentLogin = username;
+            currentDomain = domainSelect.value;
+            
+            generatedEmailEl.textContent = `${currentLogin}@${currentDomain}`;
+            emailDisplay.classList.remove('hidden');
+            
+            apiStatusEl.textContent = "Ready";
+            apiStatusEl.className = "px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium";
+            
+            emails = [];
+            renderEmails();
+            checkInbox();
+            
+            emailDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
-
-        // Open in new tab
-        newTabBtn.addEventListener('click', () => {
-            window.open(emailIframe.src, '_blank');
+        
+        // Copy button
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            if (!currentLogin || !currentDomain) return;
+            
+            navigator.clipboard.writeText(`${currentLogin}@${currentDomain}`).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>Copied!</span>
+                `;
+                
+                btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                }, 2000);
+            });
         });
-
-        console.log('✅ NM SHIELD - Temp Mail Iframe loaded successfully!');
+        
+        // Refresh button
+        document.getElementById('refreshBtn').addEventListener('click', checkInbox);
+        
+        // Close modal
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+            document.getElementById('emailModal').classList.add('hidden');
+        });
+        
+        // Close modal on outside click
+        document.getElementById('emailModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('emailModal')) {
+                document.getElementById('emailModal').classList.add('hidden');
+            }
+        });
+        
+        console.log('✅ NM SHIELD - Temp Mail loaded successfully!');
     </script>
 </body>
 </html>
