@@ -287,60 +287,46 @@
                 });
         }
 
-        // Check inbox
+        // Check inbox - NO DEMO MODE, SHOW REAL RESULTS
         async function checkInbox() {
             if (!currentLogin || !currentDomain) {
                 return;
             }
 
             const apiStatusEl = document.getElementById('apiStatus');
+            const emailCountEl = document.getElementById('emailCount');
             
             try {
                 apiStatusEl.textContent = 'Checking...';
                 apiStatusEl.className = 'px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium pulse';
                 
-                // Don't show console logs - just try API
+                console.log('🔍 Checking inbox for:', currentLogin + '@' + currentDomain);
+                
                 const response = await fetch(`${API_BASE}?action=getMessages&login=${currentLogin}&domain=${currentDomain}`);
                 
+                console.log('📡 API Response Status:', response.status);
+                
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 
                 const newEmails = await response.json();
                 
+                console.log('📧 Emails received:', newEmails);
+                
                 emails = newEmails;
                 renderEmails();
                 
-                apiStatusEl.textContent = 'Connected ✓';
+                apiStatusEl.textContent = '✅ Connected to 1secmail';
                 apiStatusEl.className = 'px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-medium';
             } catch (error) {
-                // Don't show console errors - just show demo emails
-                // Show DEMO emails if API fails (keep them consistent)
-                if (emails.length === 0) {
-                    emails = [
-                        {
-                            id: 1,
-                            from: 'demo@example.com',
-                            subject: 'Welcome to NM SHIELD (Demo)',
-                            date: new Date().toISOString()
-                        },
-                        {
-                            id: 2,
-                            from: 'otp@service.com',
-                            subject: 'Your OTP: 482910',
-                            date: new Date(Date.now() - 300000).toISOString()
-                        },
-                        {
-                            id: 3,
-                            from: 'news@letter.com',
-                            subject: 'Weekly Newsletter',
-                            date: new Date(Date.now() - 3600000).toISOString()
-                        }
-                    ];
-                    renderEmails();
-                }
-                apiStatusEl.textContent = 'Demo Mode (API Offline)';
-                apiStatusEl.className = 'px-3 py-1 bg-amber-600/30 text-amber-300 rounded-full text-sm font-medium';
+                console.error('❌ API Error:', error);
+                apiStatusEl.textContent = '❌ Error: ' + error.message;
+                apiStatusEl.className = 'px-3 py-1 bg-red-600/30 text-red-300 rounded-full text-sm font-medium';
+                
+                // Show empty inbox
+                emails = [];
+                renderEmails();
             }
         }
 
