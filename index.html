@@ -171,7 +171,7 @@
                         <tr id="noEmailsRow">
                             <td colspan="4" class="py-12 text-center text-slate-500">
                                 <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 0 00-2 2v10a2 0 002 2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                 </svg>
                                 <p class="text-lg">No emails yet! Generate an email first!</p>
                             </td>
@@ -211,13 +211,13 @@
     <script>
         // -------------- CONFIGURATION - EDIT HERE EASILY --------------
         const AVAILABLE_DOMAINS = [
-            'tinpho.com', 
-            'botgetlink.com', 
-            'bombibi.com', 
-            'fbhotro.com', 
-            'dogclothing.org', 
-            'adn3t.com', 
-            'beelsil.com'
+            '1secmail.com',
+            '1secmail.org',
+            '1secmail.net',
+            'wwjmp.com',
+            'esiix.com',
+            'xojxe.com',
+            'yoggm.com'
         ];
         const STORAGE_KEYS = {
             CURRENT_EMAIL: 'nmshield_current_email',
@@ -226,6 +226,7 @@
             EMAILS: 'nmshield_emails'
         };
         const OTP_VALIDITY_MINUTES = 2; // OTP valid for 2 minutes
+        const API_BASE_URL = 'https://www.1secmail.com/api/v1/';
         // --------------------------------------------------------------
 
         let currentLogin = null;
@@ -274,11 +275,6 @@
             emails = [];
         }
 
-        // Generate random 6-digit OTP
-        function generateOTP() {
-            return Math.floor(100000 + Math.random() * 900000).toString();
-        }
-
         // Initialize domain dropdown with whitelisted domains only
         function initDomainDropdown() {
             const domainSelect = document.getElementById('domain');
@@ -319,7 +315,7 @@
         function isOTPContent(text) {
             if (!text) return false;
             const otpPatterns = [
-                /\b\d{4,8}\b/,  // 4-8 digit numbers (common OTP)
+                /\b\d{4,8}\b/, // 4-8 digit numbers (common OTP)
                 /\bOTP\b/i,
                 /\bcode\b/i,
                 /\bverify\b/i,
@@ -343,7 +339,7 @@
                     <tr id="noEmailsRow">
                         <td colspan="4" class="py-12 text-center text-slate-500">
                             <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 0 00-2-2H5a2 0 00-2 2v10a2 0 002 2z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                             </svg>
                             <p class="text-lg">No emails yet! Check back later!</p>
                         </td>
@@ -366,25 +362,74 @@
             emailTableBody.innerHTML = emails.map((email, index) => {
                 const isOTP = isOTPContent(email.subject) || isOTPContent(email.body);
                 return `
-                <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors cursor-pointer ${isOTP ? 'otp-highlight' : ''}">
-                    <td class="py-4 px-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-gradient-to-br ${colors[index % colors.length]} rounded-full flex items-center justify-center">
-                                <span class="text-sm font-semibold">${(email.from || 'unknown').substring(0, 2).toUpperCase()}</span>
+                    <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors cursor-pointer ${isOTP ? 'otp-highlight' : ''}>
+                        <td class="py-4 px-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gradient-to-br ${colors[index % colors.length]} rounded-full flex items-center justify-center">
+                                    <span class="text-sm font-semibold">${(email.from || 'unknown').substring(0, 2).toUpperCase()}</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-medium">${email.from || 'unknown'}</span>
+                                    ${isOTP ? '<span class="px-2 py-0.5 bg-emerald-600/20 text-emerald-400 rounded-full text-xs font-semibold">OTP</span>' : ''}
+                                </div>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="font-medium">${email.from || 'unknown'}</span>
-                                ${isOTP ? '<span class="px-2 py-0.5 bg-emerald-600/20 text-emerald-400 rounded-full text-xs font-semibold">OTP</span>' : ''}
-                            </div>
-                        </div>
-                    </td>
-                    <td class="py-4 px-4">${email.subject || '(No Subject)'}</td>
-                    <td class="py-4 px-4 text-slate-400">${formatDate(email.date || new Date())}</td>
-                    <td class="py-4 px-4">
-                        <button onclick="readEmail(${email.id || 0})" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors">View</button>
-                    </td>
-                </tr>
-            `}).join('');
+                        </td>
+                        <td class="py-4 px-4">${email.subject || '(No Subject)'}</td>
+                        <td class="py-4 px-4 text-slate-400">${formatDate(email.date || new Date())}</td>
+                        <td class="py-4 px-4">
+                            <button onclick="readEmail(${email.id})" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors">View</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Fetch messages from 1secmail API
+        async function fetchMessagesFromAPI() {
+            const url = `${API_BASE_URL}?action=getMessages&login=${currentLogin}&domain=${currentDomain}`;
+            
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to fetch messages');
+                
+                const messages = await response.json();
+                
+                if (messages && Array.isArray(messages)) {
+                    // Process messages and fetch each one to get full content
+                    const fullEmails = [];
+                    
+                    for (const msg of messages) {
+                        try {
+                            const msgDetailUrl = `${API_BASE_URL}?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${msg.id}`;
+                            const msgResponse = await fetch(msgDetailUrl);
+                            const fullMsg = await msgResponse.json();
+                            
+                            fullEmails.push({
+                                id: fullMsg.id,
+                                from: fullMsg.from,
+                                subject: fullMsg.subject,
+                                date: fullMsg.date,
+                                body: fullMsg.textBody || fullMsg.body || 'No content'
+                            });
+                        } catch (err) {
+                            fullEmails.push({
+                                id: msg.id,
+                                from: msg.from,
+                                subject: msg.subject,
+                                date: msg.date,
+                                body: 'Failed to load full content'
+                            });
+                        }
+                    }
+                    
+                    return fullEmails.reverse(); // Newest first
+                }
+                
+                return [];
+            } catch (err) {
+                console.error('API error:', err);
+                return [];
+            }
         }
 
         // Check inbox - optimized for OTP!
@@ -410,48 +455,28 @@
             apiStatusEl.textContent = 'Checking for new mail...';
             apiStatusEl.className = 'px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium pulse';
 
-            // --- Simulated API Call (replace with real tmailor API when ready) ---
-            // For now, we'll use demo data to show the features working
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
-            
-            // Generate fresh OTP with 2 minutes validity
-            const otp = generateOTP();
-            const now = new Date();
-            const validUntil = new Date(now.getTime() + OTP_VALIDITY_MINUTES * 60000);
-            
-            // Demo emails - fresh OTP with validity info
-            const demoEmails = [
-                {
-                    id: Date.now(),
-                    from: 'noreply@myapp.com',
-                    subject: `Your Verification OTP: ${otp}`,
-                    body: `Your One-Time Password (OTP) for verification is: ${otp}
-
-This OTP is valid for ${OTP_VALIDITY_MINUTES} minutes.
-Valid Until: ${validUntil.toLocaleString()}
-
-Do not share this OTP with anyone.`,
-                    date: now.toISOString()
-                }
-            ];
-            
-            emails = demoEmails;
-            renderEmails();
-            saveToStorage(); // Save updated emails
-            
-            // Update state to ready
-            apiStatusEl.textContent = emails.length > 0 ? '✅ New mail received!' : '✅ Inbox is up to date';
-            apiStatusEl.className = emails.length > 0 
-                ? 'px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium' 
-                : 'px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-medium';
+            try {
+                // Fetch real emails from API
+                const fetchedEmails = await fetchMessagesFromAPI();
+                
+                emails = fetchedEmails;
+                renderEmails();
+                saveToStorage();
+                
+                apiStatusEl.textContent = emails.length > 0 ? `✅ ${emails.length} new mail(s) received!` : '✅ Inbox is up to date';
+                apiStatusEl.className = emails.length > 0 
+                    ? 'px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium' 
+                    : 'px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-medium';
+            } catch (err) {
+                apiStatusEl.textContent = '❌ Error checking inbox';
+                apiStatusEl.className = 'px-3 py-1 bg-red-600/30 text-red-300 rounded-full text-sm font-medium';
+            }
             
             // Reset button state
             isCheckingInbox = false;
             refreshBtn.disabled = false;
             refreshBtn.classList.remove('opacity-70', 'cursor-not-allowed');
             refreshBtnText.textContent = 'Check Inbox';
-            
-            console.log('Checking inbox for:', `${currentLogin}@${currentDomain}`);
         }
 
         // Read single email
@@ -459,12 +484,14 @@ Do not share this OTP with anyone.`,
             if (!currentLogin || !currentDomain) return;
             
             // Find email in our list
-            const email = emails.find(e => e.id === id) || emails[0];
+            const email = emails.find(e => e.id === id);
             
-            document.getElementById('modalSubject').textContent = email?.subject || 'Demo Email Subject';
-            document.getElementById('modalFrom').textContent = email?.from || 'demo@example.com';
-            document.getElementById('modalDate').textContent = formatDate(email?.date || new Date());
-            document.getElementById('modalBody').textContent = email?.body || 'This is a demo email. Replace with actual tmailor API integration!';
+            if (!email) return;
+            
+            document.getElementById('modalSubject').textContent = email.subject || 'No Subject';
+            document.getElementById('modalFrom').textContent = email.from || 'unknown';
+            document.getElementById('modalDate').textContent = formatDate(email.date || new Date());
+            document.getElementById('modalBody').textContent = email.body || 'No content available';
             
             document.getElementById('emailModal').classList.remove('hidden');
         }
@@ -501,11 +528,11 @@ Do not share this OTP with anyone.`,
             generatedEmailEl.textContent = currentEmail;
             emailDisplay.classList.remove('hidden');
             
-            apiStatusEl.textContent = "✅ Ready";
-            apiStatusEl.className = "px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium";
+            apiStatusEl.textContent = '✅ Ready - Check Inbox!';
+            apiStatusEl.className = 'px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium';
             
             renderEmails();
-            saveToStorage(); // Save everything
+            saveToStorage();
             
             emailDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
