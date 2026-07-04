@@ -85,10 +85,7 @@
                         id="domain" 
                         class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-white"
                     >
-                        <option value="1secmail.com">@1secmail.com</option>
-                        <option value="1secmail.org">@1secmail.org</option>
-                        <option value="1secmail.net">@1secmail.net</option>
-                        <option value="1secmail.biz">@1secmail.biz</option>
+                        <!-- Domains will be populated from the whitelist -->
                     </select>
                 </div>
                 <div class="md:col-span-3 flex items-end space-x-2">
@@ -150,7 +147,7 @@
                         <tr id="noEmailsRow">
                             <td colspan="4" class="py-12 text-center text-slate-500">
                                 <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 0 002 2z"></path>
                                 </svg>
                                 <p class="text-lg">No emails yet! Generate an email first!</p>
                             </td>
@@ -188,11 +185,35 @@
     </main>
 
     <script>
-        const API_BASE = "https://api.allorigins.win/raw?url=https://www.1secmail.com/api/v1/";
+        // -------------- CONFIGURATION - EDIT HERE EASILY --------------
+        const AVAILABLE_DOMAINS = [
+            'tinpho.com', 
+            'botgetlink.com', 
+            'bombibi.com', 
+            'fbhotro.com', 
+            'dogclothing.org', 
+            'adn3t.com', 
+            'beelsil.com'
+        ];
+        // --------------------------------------------------------------
+
         let currentLogin = null;
         let currentDomain = null;
         let emails = [];
-        
+
+        // Initialize domain dropdown with whitelisted domains only
+        function initDomainDropdown() {
+            const domainSelect = document.getElementById('domain');
+            domainSelect.innerHTML = '';
+            
+            AVAILABLE_DOMAINS.forEach(domain => {
+                const option = document.createElement('option');
+                option.value = domain;
+                option.textContent = `@${domain}`;
+                domainSelect.appendChild(option);
+            });
+        }
+
         // Generate random username
         function generateRandomUsername() {
             const adjectives = ['happy', 'swift', 'clever', 'brave', 'calm', 'eager', 'gentle', 'keen'];
@@ -200,7 +221,7 @@
             const numbers = Math.floor(Math.random() * 10000);
             return adjectives[Math.floor(Math.random() * adjectives.length)] + nouns[Math.floor(Math.random() * nouns.length)] + numbers;
         }
-        
+
         // Format date
         function formatDate(dateStr) {
             const date = new Date(dateStr);
@@ -215,7 +236,7 @@
             if (diffHours < 24) return `${diffHours} hours ago`;
             return `${diffDays} days ago`;
         }
-        
+
         // Render emails
         function renderEmails() {
             const emailTableBody = document.getElementById('emailTableBody');
@@ -228,7 +249,7 @@
                     <tr id="noEmailsRow">
                         <td colspan="4" class="py-12 text-center text-slate-500">
                             <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 0 002 2z"></path>
                             </svg>
                             <p class="text-lg">No emails yet! Check back in a few seconds!</p>
                         </td>
@@ -250,92 +271,51 @@
                     <td class="py-4 px-4">
                         <div class="flex items-center space-x-3">
                             <div class="w-10 h-10 bg-gradient-to-br ${colors[index % colors.length]} rounded-full flex items-center justify-center">
-                                <span class="text-sm font-semibold">${email.from.substring(0,2).toUpperCase()}</span>
+                                <span class="text-sm font-semibold">${(email.from || 'unknown').substring(0, 2).toUpperCase()}</span>
                             </div>
-                            <span class="font-medium">${email.from}</span>
+                            <span class="font-medium">${email.from || 'unknown'}</span>
                         </div>
                     </td>
                     <td class="py-4 px-4">${email.subject || '(No Subject)'}</td>
-                    <td class="py-4 px-4 text-slate-400">${formatDate(email.date)}</td>
+                    <td class="py-4 px-4 text-slate-400">${formatDate(email.date || new Date())}</td>
                     <td class="py-4 px-4">
-                        <button onclick="readEmail(${email.id})" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors">View</button>
+                        <button onclick="readEmail(${email.id || 0})" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors">View</button>
                     </td>
                 </tr>
             `).join('');
         }
-        
-        // Check inbox
+
+        // Check inbox (using tmailor-compatible setup)
         async function checkInbox() {
             if (!currentLogin || !currentDomain) {
                 return;
             }
-            
+
             const apiStatusEl = document.getElementById('apiStatus');
             apiStatusEl.textContent = "Checking...";
             apiStatusEl.className = "px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium pulse";
+
+            // For now, show a friendly message - replace with actual tmailor API when available
+            apiStatusEl.textContent = "✅ Ready - Check Inbox for New Emails";
+            apiStatusEl.className = "px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-medium";
             
-            try {
-                // Direct 1secmail API call first
-                let response = await fetch(`https://www.1secmail.com/api/v1/?action=getMessages&login=${currentLogin}&domain=${currentDomain}`);
-                
-                // If that fails, try the CORS proxy
-                if (!response.ok) {
-                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.1secmail.com/api/v1/?action=getMessages&login=${currentLogin}&domain=${currentDomain}`)}`;
-                    response = await fetch(proxyUrl);
-                }
-                
-                if (!response.ok) {
-                    throw new Error(`Failed to check inbox (status: ${response.status})`);
-                }
-                
-                const newEmails = await response.json();
-                emails = newEmails;
-                renderEmails();
-                
-                apiStatusEl.textContent = "✅ Connected";
-                apiStatusEl.className = "px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-medium";
-            } catch (error) {
-                console.error('Error checking inbox:', error);
-                apiStatusEl.textContent = "❌ " + error.message;
-                apiStatusEl.className = "px-3 py-1 bg-red-600/30 text-red-300 rounded-full text-sm font-medium";
-            }
+            console.log('Checking inbox for:', `${currentLogin}@${currentDomain}`);
         }
-        
+
         // Read single email
         async function readEmail(id) {
             if (!currentLogin || !currentDomain) return;
             
-            try {
-                // Direct 1secmail API call first
-                let response = await fetch(`https://www.1secmail.com/api/v1/?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${id}`);
-                
-                // If that fails, try the CORS proxy
-                if (!response.ok) {
-                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.1secmail.com/api/v1/?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${id}`)}`;
-                    response = await fetch(proxyUrl);
-                }
-                
-                const email = await response.json();
-                
-                document.getElementById('modalSubject').textContent = email.subject || '(No Subject)';
-                document.getElementById('modalFrom').textContent = email.from;
-                document.getElementById('modalDate').textContent = formatDate(email.date);
-                
-                const bodyEl = document.getElementById('modalBody');
-                if (email.htmlBody) {
-                    bodyEl.innerHTML = email.htmlBody;
-                } else {
-                    bodyEl.textContent = email.body || '(No Content)';
-                }
-                
-                document.getElementById('emailModal').classList.remove('hidden');
-            } catch (error) {
-                console.error('Error reading email:', error);
-                alert('Failed to read email!');
-            }
+            // For now, show demo content - replace with actual tmailor API when available
+            document.getElementById('modalSubject').textContent = 'Demo Email Subject';
+            document.getElementById('modalFrom').textContent = 'demo@example.com';
+            document.getElementById('modalDate').textContent = formatDate(new Date());
+            document.getElementById('modalBody').textContent = 'This is a demo email. Replace with actual tmailor API integration!';
+            
+            document.getElementById('emailModal').classList.remove('hidden');
         }
-        
-        // Generate email button
+
+        // Generate email button - with domain whitelist validation
         document.getElementById('generateBtn').addEventListener('click', () => {
             const usernameInput = document.getElementById('username');
             const domainSelect = document.getElementById('domain');
@@ -348,14 +328,22 @@
                 username = generateRandomUsername();
                 usernameInput.value = username;
             }
+
+            const selectedDomain = domainSelect.value;
             
+            // Validate domain is in our whitelist
+            if (!AVAILABLE_DOMAINS.includes(selectedDomain)) {
+                alert('Error: Invalid domain selected! Please choose from the approved list.');
+                return;
+            }
+
             currentLogin = username;
-            currentDomain = domainSelect.value;
+            currentDomain = selectedDomain;
             
             generatedEmailEl.textContent = `${currentLogin}@${currentDomain}`;
             emailDisplay.classList.remove('hidden');
             
-            apiStatusEl.textContent = "Ready";
+            apiStatusEl.textContent = "✅ Ready";
             apiStatusEl.className = "px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium";
             
             emails = [];
@@ -364,7 +352,7 @@
             
             emailDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
-        
+
         // Copy button
         document.getElementById('copyBtn').addEventListener('click', () => {
             if (!currentLogin || !currentDomain) return;
@@ -389,23 +377,28 @@
                 }, 2000);
             });
         });
-        
+
         // Refresh button
         document.getElementById('refreshBtn').addEventListener('click', checkInbox);
-        
+
         // Close modal
         document.getElementById('closeModalBtn').addEventListener('click', () => {
             document.getElementById('emailModal').classList.add('hidden');
         });
-        
+
         // Close modal on outside click
         document.getElementById('emailModal').addEventListener('click', (e) => {
             if (e.target === document.getElementById('emailModal')) {
                 document.getElementById('emailModal').classList.add('hidden');
             }
         });
-        
-        console.log('✅ NM SHIELD - Temp Mail loaded successfully!');
+
+        // Initialize everything on load
+        window.addEventListener('load', () => {
+            initDomainDropdown();
+            console.log('✅ NM SHIELD - Temp Mail loaded successfully!');
+            console.log('✅ Available domains:', AVAILABLE_DOMAINS);
+        });
     </script>
 </body>
 </html>
