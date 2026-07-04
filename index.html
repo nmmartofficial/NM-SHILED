@@ -444,9 +444,15 @@
             }).join('');
         }
 
-        // Fetch messages from 1secmail API
+        // Fetch messages from API (uses proxy if deployed on Vercel, otherwise direct)
         async function fetchMessagesFromAPI() {
-            const url = `https://www.1secmail.com/api/v1/?action=getMessages&login=${currentLogin}&domain=${currentDomain}`;
+            // Check if we're on Vercel or local to decide whether to use proxy
+            const useProxy = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+            const baseUrl = useProxy ? '/api/proxy' : 'https://www.1secmail.com/api/v1/';
+            
+            const url = useProxy 
+                ? `${baseUrl}?action=getMessages&login=${currentLogin}&domain=${currentDomain}`
+                : `${baseUrl}?action=getMessages&login=${currentLogin}&domain=${currentDomain}`;
             
             try {
                 const response = await fetch(url);
@@ -459,7 +465,10 @@
                     
                     for (const msg of messages) {
                         try {
-                            const msgDetailUrl = `https://www.1secmail.com/api/v1/?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${msg.id}`;
+                            const msgDetailUrl = useProxy
+                                ? `${baseUrl}?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${msg.id}`
+                                : `${baseUrl}?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${msg.id}`;
+                            
                             const msgResponse = await fetch(msgDetailUrl);
                             const fullMsg = await msgResponse.json();
                             
