@@ -112,9 +112,29 @@
             <h2 class="text-2xl font-semibold mb-6 text-center">Generate Your Temporary Email</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
-                <div class="md:col-span-12 flex items-end justify-center">
-                    <button id="generateBtn" class="flex-1 max-w-md px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg font-semibold transition-all duration-300 glow-button">
-                        Generate New Email Address
+                <div class="md:col-span-4">
+                    <label class="block text-sm text-slate-400 mb-2">Username</label>
+                    <input type="text" id="username" placeholder="Enter username"
+                           class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-blue-500 text-white">
+                </div>
+                
+                <div class="md:col-span-4">
+                    <label class="block text-sm text-slate-400 mb-2">Domain</label>
+                    <select id="domain" 
+                            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-blue-500 text-white">
+                        <option value="botgetlink.com">@botgetlink.com</option>
+                        <option value="bombibi.com">@bombibi.com</option>
+                        <option value="fbhotro.com">@fbhotro.com</option>
+                        <option value="dogclothing.org">@dogclothing.org</option>
+                        <option value="adn3t.com">@adn3t.com</option>
+                        <option value="beelsil.com">@beelsil.com</option>
+                        <option value="tinpho.com">@tinpho.com</option>
+                    </select>
+                </div>
+                
+                <div class="md:col-span-4 flex items-end">
+                    <button id="generateBtn" class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg font-semibold transition-all duration-300 glow-button">
+                        Generate Email Address
                     </button>
                 </div>
             </div>
@@ -130,7 +150,7 @@
                         <div class="flex items-center space-x-2">
                             <button id="copyBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg font-medium transition-colors flex items-center space-x-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012-2v2m-6 12h8a2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012-2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                                 </svg>
                                 <span>Copy</span>
                             </button>
@@ -160,7 +180,7 @@
             <!-- No Mail Indicator -->
             <div id="noMailIndicator" class="hidden no-mail-indicator rounded-xl p-4 mb-6 flex items-center space-x-3">
                 <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2-2v7m16 0v5a2 2 0 01-2-2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                 </svg>
                 <span class="text-amber-300 font-medium">No new mail yet — Auto-refresh is checking for OTPs!</span>
             </div>
@@ -180,7 +200,7 @@
                         <tr id="noEmailsRow">
                             <td colspan="4" class="py-12 text-center text-slate-500">
                                 <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 0 00-2 2v10a2 0 002 2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                 </svg>
                                 <p class="text-lg">Generate an email to start receiving OTPs!</p>
                             </td>
@@ -224,24 +244,31 @@
 
     <script>
         // -------------- CONFIGURATION - EDIT HERE EASILY --------------
+        const AVAILABLE_DOMAINS = [
+            'botgetlink.com',
+            'bombibi.com',
+            'fbhotro.com',
+            'dogclothing.org',
+            'adn3t.com',
+            'beelsil.com',
+            'tinpho.com'
+        ];
         const STORAGE_KEYS = {
             CURRENT_EMAIL: 'nmshield_current_email',
-            CURRENT_TOKEN: 'nmshield_current_token',
+            CURRENT_LOGIN: 'nmshield_current_login',
+            CURRENT_DOMAIN: 'nmshield_current_domain',
             EMAILS: 'nmshield_emails'
         };
         const POLLING_INTERVAL = 3000; // Poll every 3 seconds
         const OTP_EXPIRY_MINUTES = 2; // OTP expires after 2 minutes
         // --------------------------------------------------------------
 
+        let currentLogin = null;
+        let currentDomain = null;
         let currentEmail = null;
-        let currentToken = null;
         let emails = [];
         let isPolling = false;
         let pollingInterval = null;
-
-        // Check if we're on Vercel or local
-        const isOnVercel = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-        const PROXY_BASE_URL = isOnVercel ? '/api' : 'https://tmailor.com';
 
         // Check if email/OTP is expired
         function isOTPExpired(emailDateStr) {
@@ -256,19 +283,22 @@
         // Save data to localStorage
         function saveToStorage() {
             localStorage.setItem(STORAGE_KEYS.CURRENT_EMAIL, currentEmail);
-            localStorage.setItem(STORAGE_KEYS.CURRENT_TOKEN, currentToken);
+            localStorage.setItem(STORAGE_KEYS.CURRENT_LOGIN, currentLogin);
+            localStorage.setItem(STORAGE_KEYS.CURRENT_DOMAIN, currentDomain);
             localStorage.setItem(STORAGE_KEYS.EMAILS, JSON.stringify(emails));
         }
 
         // Load data from localStorage
         function loadFromStorage() {
             const savedEmail = localStorage.getItem(STORAGE_KEYS.CURRENT_EMAIL);
-            const savedToken = localStorage.getItem(STORAGE_KEYS.CURRENT_TOKEN);
+            const savedLogin = localStorage.getItem(STORAGE_KEYS.CURRENT_LOGIN);
+            const savedDomain = localStorage.getItem(STORAGE_KEYS.CURRENT_DOMAIN);
             const savedEmails = localStorage.getItem(STORAGE_KEYS.EMAILS);
             
-            if (savedEmail && savedToken) {
+            if (savedEmail && savedLogin && savedDomain) {
                 currentEmail = savedEmail;
-                currentToken = savedToken;
+                currentLogin = savedLogin;
+                currentDomain = savedDomain;
                 
                 if (savedEmails) {
                     try {
@@ -283,6 +313,27 @@
             }
             
             return false;
+        }
+
+        // Initialize domain dropdown with whitelisted domains only
+        function initDomainDropdown() {
+            const domainSelect = document.getElementById('domain');
+            domainSelect.innerHTML = '';
+            
+            AVAILABLE_DOMAINS.forEach(domain => {
+                const option = document.createElement('option');
+                option.value = domain;
+                option.textContent = `@${domain}`;
+                domainSelect.appendChild(option);
+            });
+        }
+
+        // Generate random username
+        function generateRandomUsername() {
+            const adjectives = ['happy', 'swift', 'clever', 'brave', 'calm', 'eager', 'gentle', 'keen'];
+            const nouns = ['panda', 'tiger', 'eagle', 'dolphin', 'fox', 'wolf', 'bear', 'lion'];
+            const numbers = Math.floor(Math.random() * 10000);
+            return adjectives[Math.floor(Math.random() * adjectives.length)] + nouns[Math.floor(Math.random() * nouns.length)] + numbers;
         }
 
         // Format date properly
@@ -342,7 +393,7 @@
                     <tr id="noEmailsRow">
                         <td colspan="4" class="py-12 text-center text-slate-500">
                             <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 0 00-2-2H5a2 0 00-2 2v10a2 0 002 2z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                             </svg>
                             <p class="text-lg">No emails yet!</p>
                         </td>
@@ -395,103 +446,57 @@
             }).join('');
         }
 
-        // Generate new email from Tmailor API
-        async function generateNewEmail() {
-            try {
-                let response;
-                if (isOnVercel) {
-                    // Use our proxy server
-                    response = await fetch(`${PROXY_BASE_URL}?action=newemail`);
-                } else {
-                    // Direct call to tmailor for local testing
-                    response = await fetch('https://tmailor.com/api', {
-                        method: 'POST',
-                        headers: {
-                            'accept': '*/*',
-                            'accept-language': 'en-US,en;q=0.5',
-                            'content-type': 'application/json',
-                            'origin': 'https://tmailor.com',
-                            'referer': 'https://tmailor.com/en/',
-                            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:145.0) Gecko/20100101 Firefox/145.0'
-                        },
-                        body: JSON.stringify({
-                            action: 'newemail',
-                            curentToken: ''
-                        })
-                    });
-                }
-                
-                if (!response.ok) {
-                    throw new Error('Failed to generate new email');
-                }
-                
-                const data = await response.json();
-                
-                if (data && data.email) {
-                    currentEmail = data.email;
-                    currentToken = data.token;
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                console.error('Error generating email:', error);
-                return false;
-            }
-        }
-
-        // Fetch messages from Tmailor API via proxy
+        // Fetch messages from 1secmail API (since it supports custom usernames and domains!)
         async function fetchMessagesFromAPI() {
+            const baseUrl = 'https://www.1secmail.com/api/v1/';
+            
             try {
-                let response;
-                if (isOnVercel) {
-                    // Use our proxy server
-                    const url = `${PROXY_BASE_URL}?action=getmessages&token=${encodeURIComponent(currentToken)}`;
-                    response = await fetch(url);
-                } else {
-                    // Direct call to tmailor for local testing
-                    response = await fetch('https://tmailor.com/api', {
-                        method: 'POST',
-                        headers: {
-                            'accept': '*/*',
-                            'accept-language': 'en-US,en;q=0.5',
-                            'content-type': 'application/json',
-                            'origin': 'https://tmailor.com',
-                            'referer': 'https://tmailor.com/en/',
-                            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:145.0) Gecko/20100101 Firefox/145.0'
-                        },
-                        body: JSON.stringify({
-                            action: 'getmessages',
-                            curentToken: currentToken
-                        })
-                    });
-                }
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch messages');
-                }
-
-                const data = await response.json();
+                const response = await fetch(`${baseUrl}?action=getMessages&login=${currentLogin}&domain=${currentDomain}`);
+                if (!response.ok) throw new Error('Failed to fetch messages');
                 
-                // Transform Tmailor's data to our format
-                if (data && data.messages && Array.isArray(data.messages)) {
-                    return data.messages.map((msg, idx) => ({
-                        id: idx,
-                        from: msg.from || 'unknown',
-                        subject: msg.subject || '(No subject)',
-                        date: msg.date || new Date().toISOString(),
-                        body: msg.body || msg.text || 'No content'
-                    })).reverse(); // Newest first
+                const messages = await response.json();
+                
+                if (messages && Array.isArray(messages)) {
+                    const fullEmails = [];
+                    
+                    for (const msg of messages) {
+                        try {
+                            const msgDetailUrl = `${baseUrl}?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${msg.id}`;
+                            const msgResponse = await fetch(msgDetailUrl);
+                            const fullMsg = await msgResponse.json();
+                            
+                            fullEmails.push({
+                                id: fullMsg.id,
+                                from: fullMsg.from,
+                                subject: fullMsg.subject,
+                                date: fullMsg.date,
+                                body: fullMsg.textBody || fullMsg.body || 'No content'
+                            });
+                        } catch (err) {
+                            console.error('Error fetching message detail:', err);
+                            fullEmails.push({
+                                id: msg.id,
+                                from: msg.from,
+                                subject: msg.subject,
+                                date: msg.date,
+                                body: 'Failed to load full content'
+                            });
+                        }
+                    }
+                    
+                    return fullEmails.reverse(); // Newest first
                 }
+                
                 return [];
-            } catch (error) {
-                console.error('Error fetching messages:', error);
-                return emails;
+            } catch (err) {
+                console.error('API error:', err);
+                return emails; // Return existing emails if API fails
             }
         }
 
         // Polling function - checks for new emails
         async function pollInbox() {
-            if (!currentEmail || !currentToken) {
+            if (!currentLogin || !currentDomain) {
                 return;
             }
 
@@ -554,6 +559,8 @@
 
         // Read single email
         async function readEmail(id) {
+            if (!currentLogin || !currentDomain) return;
+            
             const email = emails.find(e => e.id === id);
             
             if (!email) return;
@@ -591,36 +598,46 @@
 
         // Generate email button - with API-based creation
         document.getElementById('generateBtn').addEventListener('click', async () => {
+            const usernameInput = document.getElementById('username');
+            const domainSelect = document.getElementById('domain');
             const emailDisplay = document.getElementById('emailDisplay');
             const generatedEmailEl = document.getElementById('generatedEmail');
             const apiStatusEl = document.getElementById('apiStatus');
             
-            apiStatusEl.textContent = '🔄 Generating new email...';
-            apiStatusEl.className = 'px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium pulse';
+            let username = usernameInput.value.trim();
+            if (!username) {
+                username = generateRandomUsername();
+                usernameInput.value = username;
+            }
+
+            const selectedDomain = domainSelect.value;
             
+            if (!AVAILABLE_DOMAINS.includes(selectedDomain)) {
+                alert('Error: Invalid domain selected!');
+                return;
+            }
+
             // Clear old data
             emails = [];
             
-            const success = await generateNewEmail();
+            // Set current email info
+            currentLogin = username;
+            currentDomain = selectedDomain;
+            currentEmail = `${currentLogin}@${currentDomain}`;
             
-            if (success) {
-                generatedEmailEl.textContent = currentEmail;
-                emailDisplay.classList.remove('hidden');
-                
-                apiStatusEl.textContent = '✅ Email generated! Now polling for OTPs...';
-                apiStatusEl.className = 'px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium';
-                
-                renderEmails();
-                saveToStorage();
-                
-                // Start automatic polling immediately
-                startPolling();
-                
-                emailDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else {
-                apiStatusEl.textContent = '❌ Failed to generate email, please try again';
-                apiStatusEl.className = 'px-3 py-1 bg-red-600/30 text-red-300 rounded-full text-sm font-medium';
-            }
+            generatedEmailEl.textContent = currentEmail;
+            emailDisplay.classList.remove('hidden');
+            
+            apiStatusEl.textContent = '🔄 Starting email polling...';
+            apiStatusEl.className = 'px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium pulse';
+            
+            renderEmails();
+            saveToStorage();
+            
+            // Start automatic polling immediately
+            startPolling();
+            
+            emailDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
 
         // Copy button
@@ -665,10 +682,25 @@
 
         // Initialize everything on load
         window.addEventListener('load', () => {
+            initDomainDropdown();
+            
             // Try to load from storage and resume polling
             if (loadFromStorage()) {
+                const usernameInput = document.getElementById('username');
+                const domainSelect = document.getElementById('domain');
                 const emailDisplay = document.getElementById('emailDisplay');
                 const generatedEmailEl = document.getElementById('generatedEmail');
+                
+                usernameInput.value = currentLogin;
+                
+                setTimeout(() => {
+                    for (let i = 0; i < domainSelect.options.length; i++) {
+                        if (domainSelect.options[i].value === currentDomain) {
+                            domainSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }, 100);
                 
                 generatedEmailEl.textContent = currentEmail;
                 emailDisplay.classList.remove('hidden');
