@@ -50,6 +50,11 @@
             background: rgba(16, 185, 129, 0.1) !important;
         }
         
+        .otp-expired {
+            border: 2px solid #ef4444 !important;
+            background: rgba(239, 68, 68, 0.1) !important;
+        }
+        
         @keyframes otpPulse {
             0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
             50% { box-shadow: 0 0 20px 5px rgba(16, 185, 129, 0.2); }
@@ -147,23 +152,14 @@
                                 </svg>
                                 <span>Copy</span>
                             </button>
-                            <button id="refreshBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors flex items-center space-x-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                </svg>
-                                <span id="refreshBtnText">Check Inbox</span>
-                            </button>
                         </div>
                     </div>
-                    <!-- Auto Refresh Toggle -->
+                    <!-- Auto Refresh Status -->
                     <div class="mt-4 pt-4 border-t border-emerald-700/30 flex items-center justify-between">
                         <div class="auto-refresh-indicator text-emerald-300 text-sm">
-                            <span id="autoRefreshDot" class="refresh-blink hidden"></span>
-                            <span id="autoRefreshStatus">Auto Refresh: OFF</span>
+                            <span id="autoRefreshDot" class="refresh-blink"></span>
+                            <span id="autoRefreshStatus">Auto Refresh Active - Checking every 3 seconds</span>
                         </div>
-                        <button id="autoRefreshToggle" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-sm font-medium transition-colors">
-                            Turn ON Auto Refresh
-                        </button>
                     </div>
                 </div>
             </div>
@@ -174,7 +170,7 @@
             <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
                 <h2 class="text-2xl font-semibold">Inbox</h2>
                 <div class="flex items-center gap-4 flex-wrap">
-                    <span id="apiStatus" class="px-3 py-1 bg-yellow-600/30 text-yellow-300 rounded-full text-sm font-medium">Waiting to Check</span>
+                    <span id="apiStatus" class="px-3 py-1 bg-yellow-600/30 text-yellow-300 rounded-full text-sm font-medium">Waiting to Generate Email</span>
                     <span class="px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium" id="emailCount">0 Emails</span>
                 </div>
             </div>
@@ -184,7 +180,7 @@
                 <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                 </svg>
-                <span class="text-amber-300 font-medium">No new mail yet — Auto Refresh will check for OTPs automatically!</span>
+                <span class="text-amber-300 font-medium">No new mail yet — Auto-refresh is checking for OTPs!</span>
             </div>
             
             <!-- Email List -->
@@ -204,7 +200,7 @@
                                 <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 0 00-2 2v10a2 0 002 2z"></path>
                                 </svg>
-                                <p class="text-lg">No emails yet! Generate an email first!</p>
+                                <p class="text-lg">Generate an email first to start receiving OTPs!</p>
                             </td>
                         </tr>
                     </tbody>
@@ -231,7 +227,7 @@
                         <p class="font-medium" id="modalDate">Just Now</p>
                     </div>
                     <!-- OTP Codes Section -->
-                    <div id="otpSection" class="hidden mb-4 p-4 bg-emerald-900/30 border border-emerald-700/50 rounded-lg">
+                    <div id="otpSection" class="hidden mb-4 p-4 bg-emerald-900/30 border border-emerald-700/50 rounded-xl">
                         <p class="text-sm text-emerald-300 mb-2 font-medium">🔑 Extracted OTP Codes</p>
                         <div id="otpCodes" class="flex flex-wrap gap-2"></div>
                     </div>
@@ -261,16 +257,26 @@
             CURRENT_DOMAIN: 'nmshield_current_domain',
             EMAILS: 'nmshield_emails'
         };
-        const AUTO_REFRESH_INTERVAL = 3000; // Check for new emails every 3 seconds!
+        const POLLING_INTERVAL = 3000; // Poll every 3 seconds
+        const OTP_EXPIRY_MINUTES = 2; // OTP expires after 2 minutes
         // --------------------------------------------------------------
 
         let currentLogin = null;
         let currentDomain = null;
         let currentEmail = null;
         let emails = [];
-        let isCheckingInbox = false;
-        let autoRefreshEnabled = false;
-        let autoRefreshInterval = null;
+        let isPolling = false;
+        let pollingInterval = null;
+
+        // Check if email/OTP is expired
+        function isOTPExpired(emailDateStr) {
+            if (!emailDateStr) return false;
+            const emailDate = new Date(emailDateStr);
+            const now = new Date();
+            const diffMs = now - emailDate;
+            const diffMins = diffMs / 60000;
+            return diffMins > OTP_EXPIRY_MINUTES;
+        }
 
         // Save data to localStorage
         function saveToStorage() {
@@ -305,12 +311,6 @@
             }
             
             return false;
-        }
-
-        // Clear old data when generating a new email
-        function clearOldData() {
-            emails = [];
-            stopAutoRefresh();
         }
 
         // Initialize domain dropdown with whitelisted domains only
@@ -377,7 +377,7 @@
             return otpPatterns.some(pattern => pattern.test(text));
         }
 
-        // Render emails
+        // Render emails with expiration flags
         function renderEmails() {
             const emailTableBody = document.getElementById('emailTableBody');
             const emailCountEl = document.getElementById('emailCount');
@@ -386,7 +386,6 @@
             emailCountEl.textContent = `${emails.length} Email${emails.length !== 1 ? 's' : ''}`;
             
             if (emails.length === 0) {
-                // Show "No new mail" indicator and empty table
                 noMailIndicator.classList.remove('hidden');
                 emailTableBody.innerHTML = `
                     <tr id="noEmailsRow">
@@ -394,14 +393,13 @@
                             <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 0 00-2 2v10a2 0 002 2z"></path>
                             </svg>
-                            <p class="text-lg">No emails yet! Use auto-refresh to get OTPs instantly!</p>
+                            <p class="text-lg">No emails yet!</p>
                         </td>
                     </tr>
                 `;
                 return;
             }
             
-            // Hide "No new mail" indicator
             noMailIndicator.classList.add('hidden');
             
             const colors = [
@@ -414,9 +412,11 @@
             
             emailTableBody.innerHTML = emails.map((email, index) => {
                 const isOTP = isOTPContent(email.subject) || isOTPContent(email.body);
+                const isExpired = isOTPExpired(email.date);
                 const extractedOTPs = extractOTP(email.subject + ' ' + email.body);
+                
                 return `
-                    <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors cursor-pointer ${isOTP ? 'otp-highlight' : ''}">
+                    <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors cursor-pointer ${isOTP && !isExpired ? 'otp-highlight' : ''} ${isOTP && isExpired ? 'otp-expired' : ''}">
                         <td class="py-4 px-4">
                             <div class="flex items-center space-x-3">
                                 <div class="w-10 h-10 bg-gradient-to-br ${colors[index % colors.length]} rounded-full flex items-center justify-center">
@@ -424,14 +424,15 @@
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <span class="font-medium">${email.from || 'unknown'}</span>
-                                    ${isOTP ? '<span class="px-2 py-0.5 bg-emerald-600/20 text-emerald-400 rounded-full text-xs font-semibold">OTP</span>' : ''}
+                                    ${isOTP && !isExpired ? '<span class="px-2 py-0.5 bg-emerald-600/20 text-emerald-400 rounded-full text-xs font-semibold">OTP</span>' : ''}
+                                    ${isOTP && isExpired ? '<span class="px-2 py-0.5 bg-red-600/20 text-red-400 rounded-full text-xs font-semibold">EXPIRED</span>' : ''}
                                 </div>
                             </div>
                         </td>
                         <td class="py-4 px-4">${email.subject || '(No Subject)'}</td>
                         <td class="py-4 px-4 text-slate-400">${formatDate(email.date || new Date())}</td>
                         <td class="py-4 px-4 flex items-center gap-2">
-                            ${extractedOTPs.length > 0 ? `
+                            ${isOTP && !isExpired && extractedOTPs.length > 0 ? `
                                 <button onclick="copyOTP('${extractedOTPs[0]}')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-sm font-medium transition-colors">
                                     Copy OTP
                                 </button>
@@ -454,7 +455,6 @@
                 const messages = await response.json();
                 
                 if (messages && Array.isArray(messages)) {
-                    // Process messages and fetch each one to get full content
                     const fullEmails = [];
                     
                     for (const msg of messages) {
@@ -492,31 +492,15 @@
             }
         }
 
-        // Check inbox - optimized for OTP!
-        async function checkInbox() {
+        // Polling function - checks for new emails
+        async function pollInbox() {
             if (!currentLogin || !currentDomain) {
                 return;
             }
-            
-            if (isCheckingInbox) {
-                return; // Prevent duplicate clicks
-            }
 
             const apiStatusEl = document.getElementById('apiStatus');
-            const refreshBtn = document.getElementById('refreshBtn');
-            const refreshBtnText = document.getElementById('refreshBtnText');
             
-            // Set loading state
-            isCheckingInbox = true;
-            refreshBtn.disabled = true;
-            refreshBtn.classList.add('opacity-70', 'cursor-not-allowed');
-            refreshBtnText.textContent = 'Checking...';
-            
-            apiStatusEl.textContent = 'Checking for new mail...';
-            apiStatusEl.className = 'px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium pulse';
-
             try {
-                // Fetch real emails from API
                 const fetchedEmails = await fetchMessagesFromAPI();
                 const oldEmailCount = emails.length;
                 
@@ -531,19 +515,26 @@
                     apiStatusEl.textContent = '✅ Inbox is up to date';
                     apiStatusEl.className = 'px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-medium';
                 } else {
-                    apiStatusEl.textContent = '✅ No new mail yet — keep auto-refresh ON!';
+                    apiStatusEl.textContent = '✅ Waiting for new emails...';
                     apiStatusEl.className = 'px-3 py-1 bg-amber-600/30 text-amber-300 rounded-full text-sm font-medium';
                 }
             } catch (err) {
-                apiStatusEl.textContent = '⚠️ Error checking inbox, will try again automatically';
+                apiStatusEl.textContent = '⚠️ Error checking inbox, will try again';
                 apiStatusEl.className = 'px-3 py-1 bg-orange-600/30 text-orange-300 rounded-full text-sm font-medium';
             }
-            
-            // Reset button state
-            isCheckingInbox = false;
-            refreshBtn.disabled = false;
-            refreshBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-            refreshBtnText.textContent = 'Check Inbox';
+        }
+
+        // Start polling
+        function startPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+            isPolling = true;
+            // Poll immediately first
+            pollInbox();
+            // Then start interval
+            pollingInterval = setInterval(pollInbox, POLLING_INTERVAL);
+            console.log('Started polling inbox every 3 seconds');
         }
 
         // Copy OTP to clipboard
@@ -568,7 +559,6 @@
         async function readEmail(id) {
             if (!currentLogin || !currentDomain) return;
             
-            // Find email in our list
             const email = emails.find(e => e.id === id);
             
             if (!email) return;
@@ -604,48 +594,8 @@
             document.getElementById('emailModal').classList.remove('hidden');
         }
 
-        // Auto Refresh Functions
-        function startAutoRefresh() {
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-            }
-            autoRefreshEnabled = true;
-            updateAutoRefreshUI();
-            autoRefreshInterval = setInterval(checkInbox, AUTO_REFRESH_INTERVAL);
-            checkInbox(); // Check immediately when turned on
-        }
-        
-        function stopAutoRefresh() {
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-                autoRefreshInterval = null;
-            }
-            autoRefreshEnabled = false;
-            updateAutoRefreshUI();
-        }
-        
-        function updateAutoRefreshUI() {
-            const autoRefreshDot = document.getElementById('autoRefreshDot');
-            const autoRefreshStatus = document.getElementById('autoRefreshStatus');
-            const autoRefreshToggle = document.getElementById('autoRefreshToggle');
-            
-            if (autoRefreshEnabled) {
-                autoRefreshDot.classList.remove('hidden');
-                autoRefreshStatus.textContent = 'Auto Refresh: ON (every 3 sec)';
-                autoRefreshToggle.textContent = 'Turn OFF Auto Refresh';
-                autoRefreshToggle.classList.remove('bg-slate-700', 'hover:bg-slate-600');
-                autoRefreshToggle.classList.add('bg-emerald-700', 'hover:bg-emerald-600');
-            } else {
-                autoRefreshDot.classList.add('hidden');
-                autoRefreshStatus.textContent = 'Auto Refresh: OFF';
-                autoRefreshToggle.textContent = 'Turn ON Auto Refresh';
-                autoRefreshToggle.classList.remove('bg-emerald-700', 'hover:bg-emerald-600');
-                autoRefreshToggle.classList.add('bg-slate-700', 'hover:bg-slate-600');
-            }
-        }
-
-        // Generate email button - with domain whitelist validation
-        document.getElementById('generateBtn').addEventListener('click', () => {
+        // Generate email button - with API-based creation
+        document.getElementById('generateBtn').addEventListener('click', async () => {
             const usernameInput = document.getElementById('username');
             const domainSelect = document.getElementById('domain');
             const emailDisplay = document.getElementById('emailDisplay');
@@ -660,15 +610,15 @@
 
             const selectedDomain = domainSelect.value;
             
-            // Validate domain is in our whitelist
             if (!AVAILABLE_DOMAINS.includes(selectedDomain)) {
-                alert('Error: Invalid domain selected! Please choose from the approved list.');
+                alert('Error: Invalid domain selected!');
                 return;
             }
 
-            // Clear old data for new email
-            clearOldData();
+            // Clear old data
+            emails = [];
             
+            // Set current email info
             currentLogin = username;
             currentDomain = selectedDomain;
             currentEmail = `${currentLogin}@${currentDomain}`;
@@ -676,11 +626,14 @@
             generatedEmailEl.textContent = currentEmail;
             emailDisplay.classList.remove('hidden');
             
-            apiStatusEl.textContent = '✅ Ready — Turn ON Auto Refresh to get OTPs instantly!';
-            apiStatusEl.className = 'px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium';
+            apiStatusEl.textContent = '🔄 Starting email polling...';
+            apiStatusEl.className = 'px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-medium pulse';
             
             renderEmails();
             saveToStorage();
+            
+            // Start automatic polling immediately
+            startPolling();
             
             emailDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
@@ -710,18 +663,6 @@
             });
         });
 
-        // Refresh button - optimized
-        document.getElementById('refreshBtn').addEventListener('click', checkInbox);
-        
-        // Auto Refresh Toggle
-        document.getElementById('autoRefreshToggle').addEventListener('click', () => {
-            if (autoRefreshEnabled) {
-                stopAutoRefresh();
-            } else {
-                startAutoRefresh();
-            }
-        });
-
         // Close modal
         document.getElementById('closeModalBtn').addEventListener('click', () => {
             document.getElementById('emailModal').classList.add('hidden');
@@ -738,9 +679,8 @@
         window.addEventListener('load', () => {
             initDomainDropdown();
             
-            // Try to load from storage
+            // Try to load from storage and resume polling
             if (loadFromStorage()) {
-                // Restore UI state
                 const usernameInput = document.getElementById('username');
                 const domainSelect = document.getElementById('domain');
                 const emailDisplay = document.getElementById('emailDisplay');
@@ -748,7 +688,6 @@
                 
                 usernameInput.value = currentLogin;
                 
-                // Select the saved domain
                 setTimeout(() => {
                     for (let i = 0; i < domainSelect.options.length; i++) {
                         if (domainSelect.options[i].value === currentDomain) {
@@ -762,13 +701,12 @@
                 emailDisplay.classList.remove('hidden');
                 
                 renderEmails();
-                updateAutoRefreshUI();
+                startPolling();
                 
-                console.log('✅ Restored session from storage');
+                console.log('✅ Restored session from storage and resumed polling');
             }
             
             console.log('✅ NM SHIELD - Temp Mail loaded successfully!');
-            console.log('✅ Available domains:', AVAILABLE_DOMAINS);
         });
     </script>
 </body>
