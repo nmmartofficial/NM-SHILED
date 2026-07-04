@@ -46,25 +46,6 @@
     </style>
 </head>
 <body class="min-h-screen text-slate-100">
-    <!-- IMPORTANT NOTICE -->
-    <div class="bg-gradient-to-r from-amber-600 to-orange-600 py-4">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between flex-wrap gap-4">
-                <div class="flex items-center space-x-3">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                    </svg>
-                    <div class="text-white">
-                        <p class="font-bold text-lg">असली OTP/Emails Receive करने के लिए:</p>
-                        <p class="text-sm opacity-90">1. File Explorer में जाएं: <code class="bg-black/30 px-2 py-1 rounded">d:\NM MART DATA\NM SHIELD\</code></p>
-                        <p class="text-sm opacity-90">2. <code class="bg-black/30 px-2 py-1 rounded">index.html</code> पर डबल-क्लिक करें!</p>
-                        <p class="text-sm opacity-90 mt-1">(URL में <span class="font-bold">file:///</span> दिखेगा, <span class="font-bold">localhost://</span> नहीं!)</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Header -->
     <header class="border-b border-slate-700/50 py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -330,37 +311,15 @@
             }
         }
 
-        // Read single email
+        // Read single email - ONLY REAL API
         async function readEmail(id) {
-            // First check if it's a demo email
-            const demoEmail = emails.find(e => e.id === id);
-            if (demoEmail && (demoEmail.from === 'demo@example.com' || demoEmail.from === 'otp@service.com' || demoEmail.from === 'news@letter.com')) {
-                // Handle demo email
-                document.getElementById('modalSubject').textContent = demoEmail.subject || '(No subject)';
-                document.getElementById('modalFrom').textContent = demoEmail.from;
-                document.getElementById('modalDate').textContent = formatDate(demoEmail.date);
-                
-                const bodyEl = document.getElementById('modalBody');
-                if (demoEmail.from === 'demo@example.com') {
-                    bodyEl.textContent = 'Welcome to NM SHIELD! This is a demo email to show you how the interface works. When the real API is working, you will receive actual emails here!';
-                } else if (demoEmail.from === 'otp@service.com') {
-                    bodyEl.textContent = 'Your One-Time Password (OTP) is: 482910\n\nPlease use this code within 10 minutes to complete your verification.';
-                } else {
-                    bodyEl.textContent = 'This is a demo newsletter email. Thank you for using NM SHIELD temporary email service!';
-                }
-                
-                document.getElementById('emailModal').classList.remove('hidden');
-                return;
-            }
-            
-            // Try real API for non-demo emails
             if (!currentLogin || !currentDomain) return;
             
             try {
                 const response = await fetch(`${API_BASE}?action=readMessage&login=${currentLogin}&domain=${currentDomain}&id=${id}`);
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 
                 const email = await response.json();
@@ -378,7 +337,8 @@
                 
                 document.getElementById('emailModal').classList.remove('hidden');
             } catch (error) {
-                console.error('Error reading email:', error);
+                console.error('❌ Error reading email:', error);
+                alert('Failed to read email: ' + error.message);
             }
         }
 
