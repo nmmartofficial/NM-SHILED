@@ -80,7 +80,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="max-w-7xl mx-auto px-4 sm-px-6 lg:px-8 py-8">
         <!-- Control Panel -->
         <section class="glass-card rounded-2xl p-8 mb-8">
             <h2 class="text-2xl font-semibold mb-6 text-center">Generate Your Temporary Email</h2>
@@ -171,7 +171,7 @@
                         <tr id="noEmailsRow">
                             <td colspan="4" class="py-12 text-center text-slate-500">
                                 <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 0 00-2 2v10a2 0 002 2z"></path>
                                 </svg>
                                 <p class="text-lg">No emails yet! Generate an email first!</p>
                             </td>
@@ -219,12 +219,59 @@
             'adn3t.com', 
             'beelsil.com'
         ];
+        const STORAGE_KEYS = {
+            CURRENT_EMAIL: 'nmshield_current_email',
+            CURRENT_LOGIN: 'nmshield_current_login',
+            CURRENT_DOMAIN: 'nmshield_current_domain',
+            EMAILS: 'nmshield_emails'
+        };
         // --------------------------------------------------------------
 
         let currentLogin = null;
         let currentDomain = null;
+        let currentEmail = null;
         let emails = [];
         let isCheckingInbox = false;
+
+        // Save data to localStorage
+        function saveToStorage() {
+            localStorage.setItem(STORAGE_KEYS.CURRENT_EMAIL, currentEmail);
+            localStorage.setItem(STORAGE_KEYS.CURRENT_LOGIN, currentLogin);
+            localStorage.setItem(STORAGE_KEYS.CURRENT_DOMAIN, currentDomain);
+            localStorage.setItem(STORAGE_KEYS.EMAILS, JSON.stringify(emails));
+        }
+
+        // Load data from localStorage
+        function loadFromStorage() {
+            const savedEmail = localStorage.getItem(STORAGE_KEYS.CURRENT_EMAIL);
+            const savedLogin = localStorage.getItem(STORAGE_KEYS.CURRENT_LOGIN);
+            const savedDomain = localStorage.getItem(STORAGE_KEYS.CURRENT_DOMAIN);
+            const savedEmails = localStorage.getItem(STORAGE_KEYS.EMAILS);
+            
+            if (savedEmail && savedLogin && savedDomain) {
+                currentEmail = savedEmail;
+                currentLogin = savedLogin;
+                currentDomain = savedDomain;
+                
+                if (savedEmails) {
+                    try {
+                        emails = JSON.parse(savedEmails);
+                    } catch (e) {
+                        console.error('Failed to parse saved emails:', e);
+                        emails = [];
+                    }
+                }
+                
+                return true;
+            }
+            
+            return false;
+        }
+
+        // Clear old data when generating a new email
+        function clearOldData() {
+            emails = [];
+        }
 
         // Initialize domain dropdown with whitelisted domains only
         function initDomainDropdown() {
@@ -290,7 +337,7 @@
                     <tr id="noEmailsRow">
                         <td colspan="4" class="py-12 text-center text-slate-500">
                             <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 0 00-2-2H5a2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 0 00-2 2v10a2 0 002 2z"></path>
                             </svg>
                             <p class="text-lg">No emails yet! Check back later!</p>
                         </td>
@@ -381,6 +428,7 @@
             
             emails = demoEmails;
             renderEmails();
+            saveToStorage(); // Save updated emails
             
             // Update state to ready
             apiStatusEl.textContent = emails.length > 0 ? '✅ New mail received!' : '✅ Inbox is up to date';
@@ -434,26 +482,30 @@
                 return;
             }
 
+            // Clear old data for new email
+            clearOldData();
+            
             currentLogin = username;
             currentDomain = selectedDomain;
+            currentEmail = `${currentLogin}@${currentDomain}`;
             
-            generatedEmailEl.textContent = `${currentLogin}@${currentDomain}`;
+            generatedEmailEl.textContent = currentEmail;
             emailDisplay.classList.remove('hidden');
             
             apiStatusEl.textContent = "✅ Ready";
             apiStatusEl.className = "px-3 py-1 bg-emerald-600/30 text-emerald-300 rounded-full text-sm font-medium";
             
-            emails = [];
             renderEmails();
+            saveToStorage(); // Save everything
             
             emailDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
 
         // Copy button
         document.getElementById('copyBtn').addEventListener('click', () => {
-            if (!currentLogin || !currentDomain) return;
+            if (!currentEmail) return;
             
-            navigator.clipboard.writeText(`${currentLogin}@${currentDomain}`).then(() => {
+            navigator.clipboard.writeText(currentEmail).then(() => {
                 const btn = document.getElementById('copyBtn');
                 const originalHTML = btn.innerHTML;
                 btn.innerHTML = `
@@ -492,6 +544,35 @@
         // Initialize everything on load
         window.addEventListener('load', () => {
             initDomainDropdown();
+            
+            // Try to load from storage
+            if (loadFromStorage()) {
+                // Restore UI state
+                const usernameInput = document.getElementById('username');
+                const domainSelect = document.getElementById('domain');
+                const emailDisplay = document.getElementById('emailDisplay');
+                const generatedEmailEl = document.getElementById('generatedEmail');
+                
+                usernameInput.value = currentLogin;
+                
+                // Select the saved domain
+                setTimeout(() => {
+                    for (let i = 0; i < domainSelect.options.length; i++) {
+                        if (domainSelect.options[i].value === currentDomain) {
+                            domainSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }, 100);
+                
+                generatedEmailEl.textContent = currentEmail;
+                emailDisplay.classList.remove('hidden');
+                
+                renderEmails();
+                
+                console.log('✅ Restored session from storage');
+            }
+            
             console.log('✅ NM SHIELD - Temp Mail loaded successfully!');
             console.log('✅ Available domains:', AVAILABLE_DOMAINS);
         });
